@@ -30,9 +30,9 @@
       command: update-grub
       register: update_grub_cmd
       changed_when: update_grub_cmd.rc == 0
-    - name: reboot after updating grub config
-      reboot:
-        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+#    - name: reboot after updating grub config
+#      reboot:
+#        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
   when: update_grub.changed and ansible_os_family == "Debian"
 
 - name: update grub
