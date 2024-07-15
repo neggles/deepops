@@ -43,7 +43,9 @@
       name: python3-pip
   - name: install docker
     pip:
-      name: docker
+      name:
+        - docker
+        - requests<2.32.0
 
 - name: run registry docker container
   docker_container:
