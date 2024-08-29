@@ -22,7 +22,7 @@ JMESPATH_VERSION="${JMESPATH_VERSION:-0.10.0}"    # jmespath pegged version, act
 MARKUPSAFE_VERSION="${MARKUPSAFE_VERSION:-1.1.1}"  # MarkupSafe version
 PIP="${PIP:-pip3}"                              # Pip binary to use
 PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3}"    # Python3 path
-VENV_DIR="${VENV_DIR:-/opt/deepops/env}"        # Path to python virtual environment to create
+VENV_DIR="${VENV_DIR:-$root_dir/.venv}"        # Path to python virtual environment to create
 
 ###
 
@@ -112,7 +112,7 @@ if command -v virtualenv &> /dev/null ; then
 
     as_user "${PIP} install -q --upgrade \
         ansible==${ANSIBLE_VERSION} \
-	ansible-lint==${ANSIBLE_LINT_VERSION} \
+	    ansible-lint==${ANSIBLE_LINT_VERSION} \
         Jinja2==${JINJA2_VERSION} \
         netaddr \
         ruamel.yaml \
@@ -176,12 +176,6 @@ if command -v git &> /dev/null ; then
     as_user git submodule update --init
 else
     echo "ERROR: Unable to update Git submodules, 'git' command not found"
-fi
-
-# Add Ansible virtual env to PATH when using Bash
-if [ -f "${VENV_DIR}/bin/activate" ] ; then
-    . "${VENV_DIR}/bin/activate"
-    ansible localhost -m lineinfile -a "path=$HOME/.bashrc create=yes mode=0644 backup=yes line='source ${VENV_DIR}/bin/activate'"
 fi
 
 echo
