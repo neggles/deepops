@@ -7,7 +7,7 @@ gpu_bus_ids=$(lspci | grep -E "(3D|VGA compatible) controller: NVIDIA" | awk '{p
 
 gpus=$(
     for i in $gpu_bus_ids; do
-        echo -n \"$(cat /sys/class/pci_bus/0000:$i/cpulistaffinity)\",
+        echo -n "\"$(cat /sys/class/pci_bus/0000:$i/cpulistaffinity)\","
     done | sed 's/,$//'
 )
 
