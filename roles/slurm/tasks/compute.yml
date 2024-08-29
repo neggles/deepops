@@ -1,5 +1,4 @@
 ---
-
 - name: install dependencies
   apt:
     name: "{{ item }}"
@@ -30,9 +29,9 @@
       command: update-grub
       register: update_grub_cmd
       changed_when: update_grub_cmd.rc == 0
-#    - name: reboot after updating grub config
-#      reboot:
-#        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+  #    - name: reboot after updating grub config
+  #      reboot:
+  #        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
   when: update_grub.changed and ansible_os_family == "Debian"
 
 - name: update grub
@@ -94,7 +93,7 @@
     - epilog
 
 - name: include prolog/epilog
-  include: prolog_epilog.yml
+  include_tasks: prolog_epilog.yml
   when: slurm_enable_prolog_epilog
 
 - name: configure slurm.conf
@@ -104,9 +103,9 @@
     mode: "0644"
   when: not slurm_conf_symlink
   notify:
-  - restart slurmd
+    - restart slurmd
   tags:
-  - config
+    - config
 
 - name: configure slurm.conf by symbolic link
   file:
@@ -116,9 +115,9 @@
     force: yes
   when: slurm_conf_symlink
   notify:
-  - restart slurmd
+    - restart slurmd
   tags:
-  - config
+    - config
 
 - name: configure cgroup.conf
   template:
@@ -126,9 +125,9 @@
     dest: "{{ slurm_config_dir }}/cgroup.conf"
     mode: "0644"
   notify:
-  - restart slurmd
+    - restart slurmd
   tags:
-  - config
+    - config
 
 - name: configure gres.conf
   template:
@@ -136,9 +135,9 @@
     dest: "{{ slurm_config_dir }}/gres.conf"
     mode: "0644"
   notify:
-  - restart slurmd
+    - restart slurmd
   tags:
-  - config
+    - config
 
 - name: start slurmd
   systemd:
@@ -170,8 +169,8 @@
   tags:
     - config
   when:
-  - slurm_enable_pam_slurm_adopt
-  - slurm_restrict_node_access
+    - slurm_enable_pam_slurm_adopt
+    - slurm_restrict_node_access
 
 - name: configure /etc/pam.d/sshd to adopt processes but not otherwise deny access
   blockinfile:
@@ -184,28 +183,27 @@
   tags:
     - config
   when:
-  - slurm_enable_pam_slurm_adopt
-  - not slurm_restrict_node_access
+    - slurm_enable_pam_slurm_adopt
+    - not slurm_restrict_node_access
 
 - name: comment out pam_systemd.so as it conflicts with pam_slurm_adapt.so, see https://slurm.schedmd.com/pam_slurm_adopt.html
   replace:
     path: /etc/pam.d/common-session
-    regexp: '^([^#].*pam_systemd.so.*)'
+    regexp: "^([^#].*pam_systemd.so.*)"
     replace: '# \1 # ANSIBLE MANAGED (ansible-role-slurm)'
-  when: 
-  - ansible_distribution == 'Ubuntu'
-  - slurm_enable_pam_slurm_adopt
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - slurm_enable_pam_slurm_adopt
   tags:
     - config
 
 - name: comment out pam_systemd.so in RHEL as it conflicts with pam_slurm_adapt.so, see https://slurm.schedmd.com/pam_slurm_adopt.html
   replace:
     path: /etc/pam.d/password-auth
-    regexp: '^([^#].*pam_systemd.so.*)'
+    regexp: "^([^#].*pam_systemd.so.*)"
     replace: '# \1 # ANSIBLE MANAGED (ansible-role-slurm)'
   when:
-  - ansible_os_family == "RedHat"
-  - slurm_enable_pam_slurm_adopt
+    - ansible_os_family == "RedHat"
+    - slurm_enable_pam_slurm_adopt
   tags:
     - config
-

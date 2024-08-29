@@ -7,7 +7,7 @@
 - name: check installed pmix version
   shell: "grep PMIX_NUMERIC_VERSION {{ pmix_install_prefix }}/include/pmix_version.h | awk '{print $3}' | tr -d 'x0'"
   register: pmix_info_version
-  ignore_errors: yes
+  failed_when: false
   changed_when: pmix_info_version.rc != 0
 
 - name: don't build pmix if it's already installed, unless forced
@@ -66,23 +66,22 @@
 - name: when building, try to uninstall first before downloading source
   when: pmix_build
   block:
+    - name: check that we have an old build dir
+      stat:
+        path: "{{ pmix_build_dir }}"
+      register: pmix_old_build_dir
 
-  - name: check that we have an old build dir
-    stat:
-      path: "{{ pmix_build_dir }}"
-    register: pmix_old_build_dir
+    - name: uninstall old verson
+      command: make -j uninstall
+      args:
+        chdir: "{{ pmix_build_dir }}"
+      failed_when: false
+      when: pmix_old_build_dir.stat.exists
 
-  - name: uninstall old verson
-    command: make -j uninstall
-    args:
-      chdir: "{{ pmix_build_dir }}"
-    ignore_errors: yes
-    when: pmix_old_build_dir.stat.exists
-
-  - name: remove old build dir
-    file:
-      path: "{{ pmix_build_dir }}"
-      state: absent
+    - name: remove old build dir
+      file:
+        path: "{{ pmix_build_dir }}"
+        state: absent
 
 - name: make pmix build directory
   file:

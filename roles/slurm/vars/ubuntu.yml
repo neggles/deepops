@@ -4,6 +4,9 @@ slurm_pam_lib_dir: /lib/x86_64-linux-gnu/security
 slurm_build_deps:
   - build-essential
   - libmunge-dev
+  - libhttp-parser-dev
+  - libjson-c-dev
+  - libjwt-dev
   - libmariadb-dev
   - libmariadbclient-dev-compat
   - libpam0g-dev

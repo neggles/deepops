@@ -3,7 +3,7 @@
 # Install dependencies
 ###########################################
 
-- include: setup-role.yml
+- include_tasks: setup-role.yml
 
 - name: configure alternative library path
   template:
@@ -16,13 +16,13 @@
   command: ldconfig
   when: updated_slurm_ld.changed # noqa no-handler
 
-- include: munge.yml
+- include_tasks: munge.yml
 
-- include: hwloc.yml
+- include_tasks: hwloc.yml
   tags: hwloc
   when: slurm_include_hwloc
 
-- include: pmix.yml
+- include_tasks: pmix.yml
   tags: pmix
   when: slurm_include_pmix
 
@@ -38,7 +38,7 @@
 - name: check installed slurm version
   shell: "{{ slurm_install_prefix }}/sbin/slurmd --version | awk '{print $2}'"
   register: slurmd_reported_version
-  ignore_errors: yes
+  failed_when: false
   changed_when: slurmd_reported_version.rc != 0
 
 - name: don't build slurm if it's already installed, unless forced
@@ -69,6 +69,13 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: install build dependencies
+  apt:
+    name: "{{ cuda_version | replace('toolkit', 'nvml-dev') }}"
+    state: present
+    update_cache: yes
+  when: ansible_distribution == 'Ubuntu' and slurm_autodetect_nvml
+
+- name: install build dependencies
   yum:
     name: "{{ item }}"
     state: present
@@ -94,6 +101,7 @@
     - slurmctld
     - slurmdbd
     - slurmd
+    - slurmrestd
   when: ansible_distribution == 'Ubuntu'
   failed_when: false
 
@@ -113,34 +121,34 @@
   when: slurm_build
   block:
     # This service should be stopped before uninstalling slurm
-  - name: stop docker slurm exporter service to prevent subfolder creation
-    service:
-      name: "docker.slurm-exporter.service"
-      state: stopped
-    when: (ansible_distribution == 'Ubuntu') and 
-      ("docker.slurm-exporter.service" in ansible_facts.services)
+    - name: stop docker slurm exporter service to prevent subfolder creation
+      service:
+        name: "docker.slurm-exporter.service"
+        state: stopped
+      when: (ansible_distribution == 'Ubuntu') and
+        ("docker.slurm-exporter.service" in ansible_facts.services)
 
-  - name: check that we have an old build dir
-    stat:
-      path: "{{ slurm_build_dir }}"
-    register: slurm_old_build_dir
+    - name: check that we have an old build dir
+      stat:
+        path: "{{ slurm_build_dir }}"
+      register: slurm_old_build_dir
 
-  - name: uninstall old verson
-    command: make -j uninstall
-    args:
-      chdir: "{{ slurm_build_dir }}"
-    ignore_errors: yes
-    when: slurm_old_build_dir.stat.exists
+    - name: uninstall old verson
+      command: make -j uninstall
+      args:
+        chdir: "{{ slurm_build_dir }}"
+      failed_when: false
+      when: slurm_old_build_dir.stat.exists
 
-  - name: remove old build dir
-    file:
-      path: "{{ slurm_build_dir }}"
-      state: absent
+    - name: remove old build dir
+      file:
+        path: "{{ slurm_build_dir }}"
+        state: absent
 
-  - name: remove old lib dir
-    file:
-      path: "{{ slurm_install_prefix }}/lib/slurm"
-      state: absent
+    - name: remove old lib dir
+      file:
+        path: "{{ slurm_install_prefix }}/lib/slurm"
+        state: absent
 
 - name: make build directory
   file:
@@ -243,6 +251,5 @@
   service:
     name: "docker.slurm-exporter.service"
     state: restarted
-  when: (ansible_distribution == 'Ubuntu') and 
-      ("docker.slurm-exporter.service" in ansible_facts.services)
-
+  when: (ansible_distribution == 'Ubuntu') and
+    ("docker.slurm-exporter.service" in ansible_facts.services)

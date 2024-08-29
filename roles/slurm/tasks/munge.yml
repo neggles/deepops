@@ -1,5 +1,4 @@
 ---
-
 - name: install munge
   package:
     name: munge

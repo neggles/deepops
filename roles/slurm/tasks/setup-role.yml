@@ -3,10 +3,10 @@
   include_vars: "{{ item }}"
   with_first_found:
     - files:
-      - "{{ ansible_distribution|lower }}.yml"
-      - "{{ ansible_os_family|lower }}.yml"
+        - "{{ ansible_distribution|lower }}.yml"
+        - "{{ ansible_os_family|lower }}.yml"
       paths:
-      - ../vars
+        - ../vars
       skip: true
   tags:
     - always
@@ -19,7 +19,7 @@
 
 - name: add epel repo
   yum:
-    name: 
+    name:
       - "{{ epel_package }}"
     state: present
   when: ansible_os_family == "RedHat"

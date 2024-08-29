@@ -17,7 +17,7 @@
     dest: "{{ slurm_config_dir }}/slurm.conf"
     mode: "0644"
   tags:
-  - config
+    - config
 
 - name: ensure all slurm services are stopped
   service:
@@ -25,7 +25,7 @@
     state: stopped
     enabled: no
   with_items:
-  - slurmctld
-  - slurmd
-  - slurmdbd
+    - slurmctld
+    - slurmd
+    - slurmdbd
   failed_when: false

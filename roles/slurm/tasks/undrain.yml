@@ -5,11 +5,11 @@
 - name: set nodes to idle
   command: "scontrol update node={{ item }} state=idle"
   register: undrain_nodes_result
-  ignore_errors: yes
+  failed_when: false
   with_items:
     - "{{ groups['slurm-node'] }}"
   environment:
-    PATH: '{{ slurm_install_prefix }}/bin:{{ ansible_env.PATH }}'
+    PATH: "{{ slurm_install_prefix }}/bin:{{ ansible_env.PATH }}"
   run_once: true
   tags:
     - never
