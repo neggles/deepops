@@ -1,0 +1,106 @@
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 4,
+  "editor.rulers": [100, 120],
+  "files.trimTrailingWhitespace": true,
+
+  "prettier.useTabs": false,
+  "prettier.tabWidth": 4,
+  "prettier.printWidth": 110,
+
+  "files.associations": {
+    "*.yaml": "yaml",
+    "*.yml": "yaml",
+    "*.log": "log",
+    "**/logs/**/*": "log",
+    "config/**/*.yml": "ansible",
+    "config/**/*.yaml": "ansible",
+    "playbooks/**/*.yml": "ansible",
+    "playbooks/**/*.yaml": "ansible",
+    "roles/**/*.yml": "ansible",
+    "roles/**/*.yaml": "ansible",
+    "tasks/**/*.yml": "ansible"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/.ruff_cache": true,
+    "**/__pycache__": true,
+    "**/*.egg-info": true
+  },
+
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "gitlens.codeLens.symbolScopes": ["!Module"],
+    "editor.formatOnType": false,
+    "editor.formatOnSave": true,
+    "editor.wordBasedSuggestions": "off"
+  },
+  "ruff.lineLength": 110,
+  "ruff.importStrategy": "fromEnvironment",
+
+  "[ansible]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "prettier.bracketSpacing": false,
+    "prettier.tabWidth": 2,
+    "yaml.validate": false
+  },
+  "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+
+  "[shellscript]": {
+    "editor.defaultFormatter": "foxundermoon.shell-format",
+    "editor.detectIndentation": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.tabSize": 4,
+    "files.eol": "\n"
+  },
+
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.detectIndentation": false,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "prettier.tabWidth": 2,
+    "prettier.printWidth": 110
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.detectIndentation": false,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "prettier.tabWidth": 2
+  },
+
+  "[yaml]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml",
+    "editor.detectIndentation": false,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2,
+    "diffEditor.ignoreTrimWhitespace": false
+  },
+  "yaml.format.proseWrap": "preserve",
+  "yaml.format.singleQuote": false,
+  "yaml.format.printWidth": 110,
+  "yaml.format.bracketSpacing": false,
+
+  "[markdown]": {
+    "files.trimTrailingWhitespace": false
+  },
+  "yaml.schemas": {
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": "**/group_vars/*.yml, **/host_vars/*.yml",
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "file:///home/neggles/deepops/playbooks/slurm-cluster/prometheus-node-exporter.yml"
+  }
+}
