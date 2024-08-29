@@ -26,9 +26,9 @@
       become_method: "{{ method }}"
       environment: "{{proxy_env if proxy_env is defined else {}}}"
 
-    - name: "grant password-less sudo to user \"{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}\""
+    - name: 'grant password-less sudo to user "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"'
       copy:
-        content: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }} ALL=(ALL) NOPASSWD:ALL"
+        content: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }} ALL=(ALL:ALL) NOPASSWD:ALL"
         dest: "/etc/sudoers.d/{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
       become: true
       become_method: "{{ method }}"
