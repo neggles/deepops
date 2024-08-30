@@ -1,7 +1,12 @@
-slurm_exporter_container: "deepops/prometheus-slurm-exporter:latest"
+slurm_exporter_enabled: yes
+
+slurm_exporter_container: "deepops-slurm-exporter:latest"
+slurm_exporter_version: "1.6.4"
+slurm_exporter_config_dir: "{{ deepops_dir }}/slurm-exporter"
+slurm_exporter_port: 8080
+slurm_exporter_log_level: "info"
 slurm_exporter_svc_name: "docker.slurm-exporter.service"
 slurm_exporter_state: started
-slurm_exporter_enabled: yes
 
 slurm_install_prefix: /usr/local
 

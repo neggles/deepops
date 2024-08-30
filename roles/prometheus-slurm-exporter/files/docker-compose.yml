@@ -1,0 +1,60 @@
+services:
+  slurm-exporter:
+    image: "deepops-slurm-exporter:latest"
+    container_name: docker.slurm-exporter.service
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SLURM_USER: "slurm"
+        SLURM_USER_UID: "22078"
+        SLURM_USER_GID: "976"
+        SLURM_EXPORTER_VERSION: "1.6.4"
+    restart: no
+    ports:
+      - target: 8080
+        host_ip: 0.0.0.0
+        published: 8080
+        protocol: tcp
+        mode: ingress
+    environment:
+      SLURM_EXPORTER_PORT: 8080
+      SLURM_EXPORTER_LOG_LEVEL: "debug"
+      SLURM_INSTALL_PREFIX: "/usr/local"
+    volumes:
+      - type: bind
+        source: "/usr/local/bin/sdiag"
+        target: "/usr/local/bin/sdiag"
+        read_only: true
+      - type: bind
+        source: "/usr/local/bin/sinfo"
+        target: "/usr/local/bin/sinfo"
+        read_only: true
+      - type: bind
+        source: "/usr/local/bin/squeue"
+        target: "/usr/local/bin/squeue"
+        read_only: true
+      - type: bind
+        source: "/usr/local/bin/sacctmgr"
+        target: "/usr/local/bin/sacctmgr"
+        read_only: true
+      - type: bind
+        source: "/usr/local/lib/slurm"
+        target: "/usr/local/lib/slurm"
+        read_only: true
+      - type: bind
+        source: "/etc/slurm"
+        target: "/etc/slurm"
+        read_only: true
+      - type: bind
+        source: "/mnt/weka/slurm/slurm.conf"
+        target: "/etc/slurm/slurm.conf"
+        read_only: true
+      - type: bind
+        source: "/etc/hosts"
+        target: "/etc/node_hosts"
+        read_only: true
+      - type: bind
+        source: "/var/run/munge"
+        target: "/var/run/munge"
+        read_only: true

@@ -1,0 +1,62 @@
+services:
+  slurm-exporter:
+    image: "{{ slurm_exporter_container }}"
+    container_name: "{{ slurm_exporter_svc_name }}"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SLURM_USER: "{{ slurm_username }}"
+        SLURM_USER_UID: "{{ slurm_user_uid }}"
+        SLURM_USER_GID: "{{ slurm_user_gid }}"
+        SLURM_EXPORTER_VERSION: "{{ slurm_exporter_version }}"
+    restart: no
+    ports:
+      - target: {{ slurm_exporter_port }}
+        host_ip: "{{ slurm_listen_address | default('0.0.0.0') }}"
+        published: {{ slurm_exporter_port }}
+        protocol: tcp
+        mode: ingress
+    environment:
+      SLURM_EXPORTER_PORT: "{{ slurm_exporter_port }}"
+      SLURM_EXPORTER_LOG_LEVEL: "{{ slurm_exporter_log_level }}"
+      SLURM_INSTALL_PREFIX: "{{ slurm_install_prefix }}"
+    volumes:
+      - type: bind
+        source: "{{ slurm_install_prefix }}/bin/sdiag"
+        target: "{{ slurm_install_prefix }}/bin/sdiag"
+        read_only: true
+      - type: bind
+        source: "{{ slurm_install_prefix }}/bin/sinfo"
+        target: "{{ slurm_install_prefix }}/bin/sinfo"
+        read_only: true
+      - type: bind
+        source: "{{ slurm_install_prefix }}/bin/squeue"
+        target: "{{ slurm_install_prefix }}/bin/squeue"
+        read_only: true
+      - type: bind
+        source: "{{ slurm_install_prefix }}/bin/sacctmgr"
+        target: "{{ slurm_install_prefix }}/bin/sacctmgr"
+        read_only: true
+      - type: bind
+        source: "{{ slurm_install_prefix }}/lib/slurm"
+        target: "{{ slurm_install_prefix }}/lib/slurm"
+        read_only: true
+      - type: bind
+        source: "{{ slurm_config_dir }}"
+        target: "{{ slurm_config_dir }}"
+        read_only: true
+{% if slurm_conf_symlink %}
+      - type: bind
+        source: "{{ slurmctl_config_dir }}/slurm.conf"
+        target: "{{ slurm_config_dir }}/slurm.conf"
+        read_only: true
+{% endif %}
+      - type: bind
+        source: "/etc/hosts"
+        target: "/etc/node_hosts"
+        read_only: true
+      - type: bind
+        source: "/var/run/munge"
+        target: "/var/run/munge"
+        read_only: true
