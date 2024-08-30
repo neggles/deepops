@@ -109,8 +109,13 @@
     "files.trimTrailingWhitespace": false
   },
   "yaml.schemas": {
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": "**/group_vars/*.yml, **/host_vars/*.yml",
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "playbooks/**/*.yml"
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": [
+      "**/group_vars/*.yml",
+      "**/host_vars/*.yml"
+    ],
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": [
+      "playbooks/**/*.yml"
+    ]
   },
   "yaml.maxItemsComputed": 10000
 }
