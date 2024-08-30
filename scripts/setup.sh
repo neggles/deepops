@@ -104,6 +104,7 @@ netaddr
 ruamel.yaml
 PyMySQL
 paramiko
+requests==2.31.0
 jmespath==${JMESPATH_VERSION}
 MarkupSafe==${MARKUPSAFE_VERSION}
 selinux
