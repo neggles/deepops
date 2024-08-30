@@ -32,6 +32,15 @@
     "**/__pycache__": true,
     "**/*.egg-info": true
   },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.ruff_cache": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "config.example": true
+  },
 
   "[python]": {
     "diffEditor.ignoreTrimWhitespace": false,
@@ -101,6 +110,6 @@
   },
   "yaml.schemas": {
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": "**/group_vars/*.yml, **/host_vars/*.yml",
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "file:///home/neggles/deepops/playbooks/slurm-cluster/prometheus-node-exporter.yml"
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": "playbooks/**/*.yml"
   }
 }
