@@ -1,24 +1,24 @@
 ---
 spack_repo: "https://github.com/spack/spack.git"
 spack_install_dir: "/sw/spack"
-spack_version: "v0.18.1"
+spack_version: "v0.22.1"
 spack_user: "root"
 spack_group: "root"
 
 spack_ubuntu_deps:
-- "gcc-7"
-- "gfortran-7"
-- "make"
-- "git"
+  - "build-essential"
+  - "gfortran"
+  - "make"
+  - "git"
 
 spack_redhat_deps:
-- "gcc"
-- "gcc-c++"
-- "gcc-gfortran"
-- "make"
-- "git"
+  - "gcc"
+  - "gcc-c++"
+  - "gcc-gfortran"
+  - "make"
+  - "git"
 
 spack_build_packages: false
 spack_default_packages:
-- "cuda@10.2.89"
-- "openmpi@3.1.6 +cuda +pmi schedulers=auto"
+  - "cuda@12.4.1"
+  - "openmpi@4.1.7 +cuda +pmi schedulers=auto"
