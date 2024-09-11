@@ -25,18 +25,13 @@ PIP="${PIP:-pip3}"                                # Pip binary to use
 PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3.10}"   # Python3 path
 VENV_DIR="${VENV_DIR:-$ROOT_DIR/.venv}"           # Path to python virtual environment to create
 
-###
-
 # Set distro-specific variables
 . /etc/os-release
 DEPS_DEB=(git virtualenv python3-virtualenv sshpass wget)
-DEPS_EL7=(git libselinux-python3 python-virtualenv python3-virtualenv sshpass wget)
-DEPS_EL8=(git python3-libselinux python3-virtualenv sshpass wget)
-EPEL_VERSION="$(echo ${VERSION_ID} | sed 's/^[^0-9]*//;s/[^0-9].*$//')"
-EPEL_URL="https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EPEL_VERSION}.noarch.rpm"
 
 # Disable interactive prompts from Apt
 export DEBIAN_FRONTEND=noninteractive
+export DEBIAN_PRIORITY=critical
 
 # Exit if run as root
 if [[ $(id -u) -eq 0 ]]; then
@@ -46,17 +41,6 @@ fi
 
 # Install software dependencies
 case "$ID" in
-    rhel* | centos*)
-        sudo yum -y -q install ${EPEL_URL} |& grep -v 'Nothing to do' # Enable EPEL (required for sshpass package)
-        case "$EPEL_VERSION" in
-            7)
-                sudo yum -y -q install ${DEPS_EL7[@]}
-                ;;
-            8)
-                sudo yum -y -q install ${DEPS_EL8[@]}
-                ;;
-        esac
-        ;;
     ubuntu*)
         sudo apt-get -q update
         sudo apt-get -yq install ${DEPS_DEB[@]}

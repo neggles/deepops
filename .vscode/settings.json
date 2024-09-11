@@ -63,6 +63,7 @@
     "yaml.validate": false
   },
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "ansible.ansible.path": "${workspaceFolder}/.venv/bin/ansible",
 
   "[shellscript]": {
     "editor.defaultFormatter": "foxundermoon.shell-format",
