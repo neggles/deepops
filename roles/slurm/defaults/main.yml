@@ -48,6 +48,7 @@ slurm_resume_timeout: 900
 # Sets: GresTypes=gpu
 # Sets: Gres=gpu:{{ gpu_topology|count }}
 slurm_manage_gpus: true
+slurm_enable_nvml: true
 slurm_autodetect_nvml: true
 
 # Configuration file templates to use for configuring Slurm.
@@ -78,7 +79,7 @@ slurm_oversubscribe: "NO"
 # slurm_default_job_timelimit:
 
 # Maximum time to wait for Slurm compute nodes to reboot during playbook setup
-slurm_node_reboot_timeout: 600
+slurm_node_reboot_timeout: 900
 
 # Set up prolog and epilog
 slurm_enable_prolog_epilog: true
@@ -104,14 +105,14 @@ slurm_include_hwloc: yes
 hwloc_version: 2.5.0
 hwloc_tag: "v{{ hwloc_version.split('.')[0] }}.{{ hwloc_version.split('.')[1] }}"
 hwloc_src_url: "https://download.open-mpi.org/release/hwloc/{{ hwloc_tag }}/hwloc-{{ hwloc_version }}.tar.gz"
-hwloc_install_prefix: /opt/deepops/hwloc
+hwloc_install_prefix: "{{ deepops_dir }}/hwloc"
 hwloc_configure: "./configure --prefix={{ hwloc_install_prefix }} --enable-static --disable-cairo --disable-libxml2 --enable-netloc --enable-plugins"
 hwloc_force_rebuild: no
 
 slurm_include_pmix: yes
 pmix_version: 3.2.3
 pmix_src_url: "https://github.com/openpmix/openpmix/releases/download/v{{ pmix_version }}/pmix-{{ pmix_version }}.tar.bz2"
-pmix_install_prefix: /opt/deepops/pmix
+pmix_install_prefix: "{{ deepops_dir }}/pmix"
 pmix_configure: "./configure --prefix={{ pmix_install_prefix }} --with-hwloc={{ hwloc_install_prefix }}"
 pmix_force_rebuild: no
 # Memory reserved for system etc use and thus excluded from Slurm allocation

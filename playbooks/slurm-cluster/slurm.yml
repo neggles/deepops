@@ -1,12 +1,12 @@
 ---
 - hosts: all
-  become: yes
+  become: true
   roles:
     - name: facts
 
 # Set root SSH key to allow SSH/ansible when no slurm job running for ansible user
 - hosts: slurm-node
-  become: yes
+  become: true
   tasks:
     - name: Add SSH public key to root user authorized keys
       authorized_key:
@@ -16,7 +16,7 @@
 
 # Build slurm first on all nodes
 - hosts: slurm-cluster
-  become: yes
+  become: true
   tasks:
     - name: build slurm on all nodes
       include_role:
@@ -25,7 +25,7 @@
 
 # Configure slurm.conf on all nodes
 - hosts: slurm-cluster
-  become: yes
+  become: true
   roles:
     - name: slurm
       vars:
@@ -34,7 +34,7 @@
 
 # Set up slurm controller
 - hosts: slurm-master
-  become: yes
+  become: true
   roles:
     - name: slurm
       vars:
@@ -44,7 +44,7 @@
 
 # Set up slurm nodes
 - hosts: slurm-node
-  become: yes
+  become: true
   roles:
     - name: slurm
       vars:
@@ -54,7 +54,7 @@
 
 # Set up slurm-login-on-compute if enabled
 - hosts: slurm-master
-  become: yes
+  become: true
   tasks:
     - name: Setup slurm login on compute if enabled.
       include_role:

@@ -4,7 +4,9 @@
     hwloc_build: yes
 
 - name: check installed hwloc version
-  shell: "{{ hwloc_install_prefix }}/bin/hwloc-info --version | awk '{print $2}'"
+  ansible.builtin.shell:
+    cmd: "set -o pipefail; {{ hwloc_install_prefix }}/bin/hwloc-info --version | awk '{print $2}'"
+    executable: /bin/bash
   register: hwloc_info_version
   failed_when: false
   changed_when: hwloc_info_version.rc != 0
@@ -20,13 +22,6 @@
   with_items: "{{ slurm_hwloc_deps }}"
   when: ansible_distribution == 'Ubuntu'
 
-- name: install hwloc build dependencies
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items: "{{ slurm_hwloc_deps }}"
-  when: ansible_os_family == 'RedHat'
-
 - name: remove hwloc packages
   apt:
     name: "{{ item }}"
@@ -36,17 +31,6 @@
     - libhwloc-dev
     - libhwloc5
   when: ansible_distribution == 'Ubuntu'
-  failed_when: false
-
-- name: remove hwloc packages
-  yum:
-    name: "{{ item }}"
-    state: absent
-  with_items:
-    - hwloc-devel
-    - hwloc-libs
-    - hwloc
-  when: ansible_os_family == 'RedHat'
   failed_when: false
 
 - name: when building, try to uninstall first before downloading source

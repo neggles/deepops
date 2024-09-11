@@ -96,18 +96,18 @@
   include_tasks: prolog_epilog.yml
   when: slurm_enable_prolog_epilog
 
-- name: configure slurm.conf
+- name: Create slurm.conf (per-host mode)
   template:
     src: "{{ slurm_conf_template }}"
     dest: "{{ slurm_config_dir }}/slurm.conf"
     mode: "0644"
   when: not slurm_conf_symlink
   notify:
-    - restart slurmd
+    - restart slurmctld
   tags:
     - config
 
-- name: configure slurm.conf by symbolic link
+- name: Symlink slurm.conf (shared mode)
   file:
     path: "{{ slurm_config_dir }}/slurm.conf"
     state: link
@@ -115,7 +115,7 @@
     force: yes
   when: slurm_conf_symlink
   notify:
-    - restart slurmd
+    - restart slurmctld
   tags:
     - config
 

@@ -1,60 +1,13 @@
 ---
 - name: install dependencies
   apt:
-    name: "{{ item }}"
+    name:
+      - mariadb-server
+      - python3-mysqldb
+      - s-nail
+      - ssmtp
     state: present
-  with_items:
-    - mariadb-server
-    - python3-mysqldb
-    - s-nail
-    - ssmtp
-  when: ansible_os_family == "Debian"
-
-- name: install dependencies
-  yum:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - mariadb-server
-    - MySQL-python
-    - mailx
-    - ssmtp
-    - policycoreutils-python
-  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
-
-- name: install dependencies
-  dnf:
-    name: "{{ item }}"
-    state: present
-  with_items:
-    - mariadb-server
-    - python3-PyMySQL
-    - mailx
-    - policycoreutils-python-utils
-  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8"
-
-- name: Allow mysql to read libaio.so.1
-  sefcontext:
-    target: "/lib64(/.*)?"
-    setype: mysqld_db_t
-    state: present
-  when:
-    - ansible_os_family == "RedHat"
-    - (ansible_selinux is defined) and (ansible_selinux.status != "disabled")
-
-- name: Apply new SELinux file context to filesystem
-  command: restorecon -irv /lib64
-  when:
-    - ansible_os_family == "RedHat"
-    - (ansible_selinux is defined) and (ansible_selinux.status != "disabled")
-
-- name: start mariadb
-  systemd:
-    name: mariadb
-    state: started
-    enabled: yes
-    daemon-reload: yes
-  when: ansible_os_family == "RedHat"
+    cache_valid_time: 3600
 
 - name: setup slurm db user
   mysql_user:
@@ -72,18 +25,9 @@
     mode: 0755
   with_items:
     - "{{ slurm_config_dir }}"
+    - "{{ slurmctl_config_dir }}"
     - /var/spool/slurm/ctld
     - /var/log/slurm
-
-- name: create slurm directories for nfs sharing
-  file:
-    path: "{{ item }}"
-    state: directory
-    owner: slurm
-    mode: 0755
-  with_items:
-    - "{{ slurmctl_config_dir }}"
-  when: slurm_conf_symlink
 
 - name: create slurm HA directory
   file:
@@ -93,7 +37,7 @@
     mode: 0755
   when: slurm_enable_ha
 
-- name: configure slurm.conf
+- name: Create slurm.conf (per-host mode)
   template:
     src: "{{ slurm_conf_template }}"
     dest: "{{ slurm_config_dir }}/slurm.conf"
@@ -104,7 +48,7 @@
   tags:
     - config
 
-- name: configure slurm.conf to nfs
+- name: Create slurm.conf (shared mode)
   template:
     src: "{{ slurm_conf_template }}"
     dest: "{{ slurmctl_config_dir }}/slurm.conf"
@@ -113,7 +57,7 @@
   tags:
     - config
 
-- name: complete slurm.conf
+- name: Symlink slurm.conf (shared mode)
   file:
     path: "{{ slurm_config_dir }}/slurm.conf"
     state: link
@@ -125,7 +69,7 @@
   tags:
     - config
 
-- name: configure slurmdbd.conf
+- name: Configure slurmdbd
   template:
     src: "{{ slurm_dbd_conf_template }}"
     dest: "{{ slurm_config_dir }}/slurmdbd.conf"

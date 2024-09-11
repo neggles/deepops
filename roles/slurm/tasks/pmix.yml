@@ -1,126 +1,104 @@
 ---
-- name: default to building pmix
-  set_fact:
-    pmix_build: yes
-    pmix_ver_alt: "{{ pmix_version | replace('.','') }}"
-
-- name: check installed pmix version
-  shell: "grep PMIX_NUMERIC_VERSION {{ pmix_install_prefix }}/include/pmix_version.h | awk '{print $3}' | tr -d 'x0'"
-  register: pmix_info_version
-  failed_when: false
-  changed_when: pmix_info_version.rc != 0
-
-- name: don't build pmix if it's already installed, unless forced
+- name: Set PMIx variables
   set_fact:
     pmix_build: no
-  when: pmix_info_version.stdout == pmix_ver_alt and not pmix_force_rebuild
+    pmix_ver_alt: "{{ pmix_version | replace('.','') }}"
+
+- name: check installed PMIx version (if any)
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      grep PMIX_NUMERIC_VERSION {{ pmix_install_prefix }}/include/pmix_version.h | awk '{print $3}' | tr -d 'x0'
+    executable: /bin/bash
+  failed_when: false
+  changed_when: false
+  register: pmix_info_version
+
+- name: build pmix if not installed, the version is different, or rebuild forced
+  set_fact:
+    pmix_build: yes
+  when: pmix_force_rebuild or (pmix_info_version.stdout != pmix_ver_alt)
 
 - name: install pmix build dependencies
   apt:
-    name: "{{ item }}"
-  with_items: "{{ slurm_pmix_deps }}"
-  when: ansible_distribution == 'Ubuntu'
-
-- name: install pmix build dependencies
-  yum:
-    name: "{{ item }}"
+    name: "{{ slurm_pmix_deps }}"
     state: present
-  with_items: "{{ slurm_pmix_deps }}"
-  when: ansible_os_family == 'RedHat'
+    cache_valid_time: 3600
 
-- name: install pmix 'pandoc' build dependency for RHEL 7
-  yum:
-    name: pandoc
-    state: present
-  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7"
-
-- name: install pmix 'pandoc' build dependency for RHEL 8
-  dnf:
-    name: pandoc
-    state: present
-    enablerepo: powertools
-  when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "8"
-
-- name: remove pmix packages
+- name: remove existing pmix packages
   apt:
-    name: "{{ item }}"
+    name:
+      - pmix
+      - libpmix-dev
+      - libpmix*
     state: absent
-  with_items:
-    - pmix
-    - libpmix-dev
-    - libpmix5
-  when: ansible_distribution == 'Ubuntu'
+    cache_valid_time: 3600
   failed_when: false
 
-- name: remove pmix packages
-  yum:
-    name: "{{ item }}"
-    state: absent
-  with_items:
-    - pmix-devel
-    - pmix-libs
-    - pmix
-  when: ansible_os_family == 'RedHat'
-  failed_when: false
-
-- name: when building, try to uninstall first before downloading source
+- name: check for existing build, uninstall if necessary, and clean up
   when: pmix_build
   block:
-    - name: check that we have an old build dir
-      stat:
+    - name: check if we have an old build dir
+      ansible.builtin.stat:
         path: "{{ pmix_build_dir }}"
       register: pmix_old_build_dir
 
-    - name: uninstall old verson
-      command: make -j uninstall
-      args:
+    - name: check if we have an old installed lib
+      ansible.builtin.stat:
+        path: "{{ pmix_install_prefix }}"
+      register: pmix_old_install_dir
+
+    - name: attempt to uninstall old version
+      community.general.make:
         chdir: "{{ pmix_build_dir }}"
+        target: uninstall
+        jobs: "{{ ansible_processor_vcpus }}"
       failed_when: false
-      when: pmix_old_build_dir.stat.exists
+      when: pmix_old_build_dir.stat.exists and pmix_old_install_dir.stat.exists
 
     - name: remove old build dir
-      file:
+      ansible.builtin.file:
         path: "{{ pmix_build_dir }}"
         state: absent
+      when: pmix_old_build_dir.stat.exists
 
-- name: make pmix build directory
-  file:
-    path: "{{ pmix_build_dir }}"
-    state: directory
-    mode: "0755"
+- name: Build PMIx
   when: pmix_build
+  block:
+    - name: Create PMIx build directory
+      ansible.builtin.file:
+        path: "{{ pmix_build_dir }}"
+        state: directory
+        mode: "0755"
 
-- name: download pmix source
-  unarchive:
-    src: "{{ pmix_src_url }}"
-    remote_src: yes
-    dest: "{{ pmix_build_dir }}"
-    extra_opts:
-      - --strip-components=1
-  environment: "{{ proxy_env if proxy_env is defined else {} }}"
-  when: pmix_build
+    - name: Download PMIx sources
+      ansible.builtin.unarchive:
+        src: "{{ pmix_src_url }}"
+        dest: "{{ pmix_build_dir }}"
+        remote_src: yes
+        extra_opts:
+          - --strip-components=1
+      environment: "{{ proxy_env if proxy_env is defined else {} }}"
 
-- name: clean pmix src dir
-  command: make distclean
-  args:
-    chdir: "{{ pmix_build_dir }}"
-  failed_when: false
-  when: pmix_build
+    - name: clean PMIx src dir
+      community.general.make:
+        chdir: "{{ pmix_build_dir }}"
+        target: distclean
 
-- name: configure pmix
-  command: "{{ pmix_configure }}"
-  args:
-    chdir: "{{ pmix_build_dir }}"
-  when: pmix_build
+    - name: configure PMIx
+      ansible.builtin.command:
+        cmd: "{{ pmix_configure }}"
+        chdir: "{{ pmix_build_dir }}"
+        creates: "{{ pmix_build_dir }}/Makefile"
 
-- name: build pmix
-  shell: "make -j$(nproc) > build.log 2>&1"
-  args:
-    chdir: "{{ pmix_build_dir }}"
-  when: pmix_build
+    - name: build PMIx
+      community.general.make:
+        chdir: "{{ pmix_build_dir }}"
+        target: all
+        jobs: "{{ ansible_processor_vcpus }}"
 
-- name: install pmix
-  shell: "make -j$(nproc) install >> build.log 2>&1"
-  args:
-    chdir: "{{ pmix_build_dir }}"
-  when: pmix_build
+    - name: install PMIx
+      community.general.make:
+        chdir: "{{ pmix_build_dir }}"
+        target: install
+        jobs: "{{ ansible_processor_vcpus }}"

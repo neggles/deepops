@@ -33,3 +33,9 @@
   service:
     name: rsyslog
     state: restarted
+
+- name: update ld.so cache
+  command:
+    cmd: ldconfig
+  become: yes
+  become_user: root
