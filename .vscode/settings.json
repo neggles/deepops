@@ -10,9 +10,8 @@
 
   "files.associations": {
     "*.yaml": "yaml",
-    "*.yml": "yaml",
+    "*.yml": "ansible",
     "*.log": "log",
-    "**/logs/**/*": "log",
     "config/**/*.yml": "ansible",
     "config/**/*.yaml": "ansible",
     "playbooks/**/*.yml": "ansible",
@@ -110,11 +109,18 @@
   },
   "yaml.schemas": {
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": [
-      "**/group_vars/*.yml",
-      "**/host_vars/*.yml"
+      "*/group_vars/*.yml",
+      "*/host_vars/*.yml",
+      "*/vars/*.yml"
+    ],
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json": [
+      "roles/*/meta/*.yml"
+    ],
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/tasks": [
+      "roles/*/tasks/*.yml"
     ],
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": [
-      "playbooks/**/*.yml"
+      "playbooks/*/*.yml"
     ]
   },
   "yaml.maxItemsComputed": 10000
