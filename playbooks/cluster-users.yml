@@ -1,0 +1,123 @@
+- name: Update cluster users
+  hosts: all
+  become: true
+  vars_files:
+    - "{{ inventory_dir }}/vars/users.yml"
+  vars:
+    # default vars (override in vars/users.yml)
+    shared_home_root: "{{ shared_home_root | default('/mnt/weka/home') }}"
+    users_create_groups: "{{ users_create_groups | default([]) }}"
+    users_create_per_user_group: true
+    users_default_shell: "/bin/bash"
+    users_ssh_key_type: "ed25519"
+    first_login_host: "{{ groups['slurm-login'].0 }}"
+    # slurm config
+    slurm_account_name: "compute-account"
+
+    # calculated vars (do not override)
+    users_names: "{{ users | map(attribute='name') | list }}"
+    users_dict: "{{ dict(users_names | zip(users)) }}"
+  tasks:
+    - name: Set user home dirs
+      ansible.builtin.set_fact:
+        users_dict: "{{ users_dict | combine({item.name: {'home': ('/home' if item.local_home else shared_home_root) + '/' + item.name }}, recursive=True) }}"
+      loop: "{{ users }}"
+      run_once: true
+
+    - name: Create groups
+      ansible.builtin.group:
+        name: "{{ item.name }}"
+        gid: "{{ item.gid | default(omit) }}"
+      loop: "{{ users_create_groups }}"
+      tags: ["users", "groups", "configuration"]
+
+    - name: Create per-user groups
+      ansible.builtin.group:
+        name: "{{ item.name }}"
+        gid: "{{ item.gid | default(item.uid) | default(omit) }}"
+      loop: "{{ users }}"
+      when: users_create_per_user_group and 'group' not in item
+      tags: ["users", "configuration"]
+
+    - name: "Create users"
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        uid: "{{ item.uid | default(omit) }}"
+        group: "{{ item.group | default(item.name) }}"
+        shell: "{{ item.shell | default(users_default_shell) }}"
+        home: "{{ users_dict[item.name].home }}"
+        create_home: "{{ item.local_home or is_first_login }}"
+        generate_ssh_key: "{{ is_first_login }}" # Generate SSH key only on first login node
+        ssh_key_type: ed25519
+        ssh_key_file: ".ssh/id_{{ users_ssh_key_type }}"
+        ssh_key_comment: "{{ item.name }}@{{ slurm_cluster_name }}-cluster"
+        state: "{{ 'present' if item.enabled | default(true) else 'absent' }}"
+      loop: "{{ users }}"
+      tags: ["users", "configuration"]
+      register: users_created
+
+    - name: Add user's configured SSH authorized_keys
+      ansible.posix.authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ item.authorized_keys | join('\n') }}"
+      loop: "{{ users }}"
+      tags: ["users", "configuration"]
+      when: (is_first_login or item.local_home) and item.enabled
+
+    - name: Retrieve user's generated cluster SSH key
+      ansible.builtin.slurp:
+        src: "{{ users_dict[item.name].home }}/.ssh/id_{{ users_ssh_key_type }}.pub"
+      loop: "{{ users }}"
+      delegate_to: "{{ first_login_host }}" # Delegate key retrieval to the login node
+      run_once: true
+      register: users_cluster_ssh_keys
+      when: item.enabled
+      tags: ["users", "configuration", "ssh"]
+
+    - name: Add user's generated cluster SSH key to authorized_keys
+      ansible.posix.authorized_key:
+        user: "{{ item.item.name }}"
+        key: "{{ item.content | b64decode }}"
+      loop: "{{ users_cluster_ssh_keys.results }}"
+      tags: ["users", "configuration"]
+      when: (is_first_login or item.item.local_home) and item.content is defined
+
+    - name: Set passwordless sudo for admin users
+      ansible.builtin.template:
+        src: "sudoers.j2"
+        dest: "/etc/sudoers.d/{{ item.name }}"
+        owner: root
+        group: root
+        mode: 0440
+        validate: "/usr/sbin/visudo -cf %s"
+      loop: "{{ users }}"
+      when: item.is_admin | bool
+      tags: ["users", "configuration"]
+
+    - name: Remove sudo for non-admin users
+      ansible.builtin.file:
+        path: "/etc/sudoers.d/{{ item.name }}"
+        state: absent
+      loop: "{{ users }}"
+      when: not item.is_admin | bool
+      tags: ["users", "configuration"]
+
+    - name: Check if user has a SLURM user account
+      ansible.builtin.shell:
+        cmd: set -o pipefail && sacctmgr show user -nP | cut -d'|' -f1
+        executable: /bin/bash
+      changed_when: false
+      register: slurm_user_check
+      run_once: true
+      tags: ["users", "slurm"]
+
+    - name: Create SLURM user account
+      ansible.builtin.command:
+        cmd: "sacctmgr -i add user {{ item.name }} account={{ slurm_account_name }} adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
+      loop: "{{ users }}"
+      when: item.name not in slurm_user_check.stdout_lines and item.enabled
+      register: slurm_user_result
+      failed_when: "slurm_user_result.rc != 0 and 'Nothing added' not in slurm_user_result.stdout and 'Already existing account' not in slurm_user_result.stdout"
+      changed_when: "'Nothing added' not in slurm_user_result.stdout and 'Already existing account' not in slurm_user_result.stdout"
+      run_once: true # run only once
+      tags: ["users", "slurm"]
