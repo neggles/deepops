@@ -20,8 +20,10 @@
   tasks:
     - name: Set user home dirs
       ansible.builtin.set_fact:
-        users_dict: "{{ users_dict | combine({item.name: {'home': ('/home' if item.local_home else shared_home_root) + '/' + item.name }}, recursive=True) }}"
+        users_dict: "{{ users_dict | combine({item.name: {'home': ('/home' if item.local_home else shared_home_root) + '/' + item.name}}, recursive=True) }}"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }} home={{ ('/home' if item.local_home else shared_home_root) + '/' + item.name }}"
       run_once: true
 
     - name: Create groups
@@ -36,6 +38,8 @@
         name: "{{ item.name }}"
         gid: "{{ item.gid | default(item.uid) | default(omit) }}"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
       when: users_create_per_user_group and 'group' not in item
       tags: ["users", "configuration"]
 
@@ -53,6 +57,8 @@
         ssh_key_comment: "{{ item.name }}@{{ slurm_cluster_name }}-cluster"
         state: "{{ 'present' if item.enabled | default(true) else 'absent' }}"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
       tags: ["users", "configuration"]
       register: users_created
 
@@ -61,6 +67,8 @@
         user: "{{ item.name }}"
         key: "{{ item.authorized_keys | join('\n') }}"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
       tags: ["users", "configuration"]
       when: (is_first_login or item.local_home) and item.enabled
 
@@ -68,6 +76,8 @@
       ansible.builtin.slurp:
         src: "{{ users_dict[item.name].home }}/.ssh/id_{{ users_ssh_key_type }}.pub"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
       delegate_to: "{{ first_login_host }}" # Delegate key retrieval to the login node
       run_once: true
       register: users_cluster_ssh_keys
@@ -78,6 +88,8 @@
       ansible.posix.authorized_key:
         user: "{{ item.item.name }}"
         key: "{{ item.content | b64decode }}"
+      loop_control:
+        label: "{{ item.item.name }}"
       loop: "{{ users_cluster_ssh_keys.results }}"
       tags: ["users", "configuration"]
       when: (is_first_login or item.item.local_home) and item.content is defined
@@ -91,6 +103,8 @@
         mode: 0440
         validate: "/usr/sbin/visudo -cf %s"
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }} is_admin={{ item.is_admin }}"
       when: item.is_admin | bool
       tags: ["users", "configuration"]
 
@@ -99,6 +113,8 @@
         path: "/etc/sudoers.d/{{ item.name }}"
         state: absent
       loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }} is_admin={{ item.is_admin }}"
       when: not item.is_admin | bool
       tags: ["users", "configuration"]
 
@@ -111,13 +127,27 @@
       run_once: true
       tags: ["users", "slurm"]
 
-    - name: Create SLURM user account
+    - name: Create SLURM user accounts
       ansible.builtin.command:
-        cmd: "sacctmgr -i add user {{ item.name }} account={{ slurm_account_name }} adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
+        cmd: "sacctmgr -i add user {{ item.name }} account={{ item.slurm_account_name | default(slurm_account_name) }} adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
       loop: "{{ users }}"
-      when: item.name not in slurm_user_check.stdout_lines and item.enabled
+      loop_control:
+          label: "{{ item.name }}, account={{ item.slurm_account_name | default(slurm_account_name) }}, kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
+      when:
+        - item.enabled | bool
+        - item.name not in slurm_user_check.stdout_lines
       register: slurm_user_result
-      failed_when: "slurm_user_result.rc != 0 and 'Nothing added' not in slurm_user_result.stdout and 'Already existing account' not in slurm_user_result.stdout"
-      changed_when: "'Nothing added' not in slurm_user_result.stdout and 'Already existing account' not in slurm_user_result.stdout"
+      failed_when:
+        - slurm_user_result.rc != 0
+        - ('Nothing added' not in slurm_user_result.stdout)
+        - ('Already existing account' not in slurm_user_result.stdout)
+      changed_when:
+        - ('Nothing added' not in slurm_user_result.stdout)
+        - ('Already existing account' not in slurm_user_result.stdout)
       run_once: true # run only once
       tags: ["users", "slurm"]
+
+    - name: Print create result
+      ansible.builtin.debug:
+        var: slurm_user_result
+        verbosity: 1
