@@ -3,7 +3,8 @@
 # Install dependencies
 ###########################################
 
-- include_tasks: setup-role.yml
+- name: Setup role
+  include_tasks: setup-role.yml
 
 - name: configure ld.so library path
   template:
@@ -15,11 +16,16 @@
 
 - include_tasks: munge.yml
 
-- include_tasks: hwloc.yml
+- name: Setup munge
+  include_tasks: munge.yml
+
+- name: Setup hwlock
+  include_tasks: hwloc.yml
   tags: hwloc
   when: slurm_include_hwloc
 
-- include_tasks: pmix.yml
+- name: Setup pmix
+  include_tasks: pmix.yml
   tags: pmix
   when: slurm_include_pmix
 
