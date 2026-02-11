@@ -63,10 +63,14 @@
     "yaml.validate": false
   },
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "ansible.ansible.path": "${workspaceFolder}/.venv/bin/ansible",
+  "ansible.ansible.path": "/mnt/data/setup/deepops/.venv/bin/ansible",
+  "ansible.validation.lint.path": "/mnt/data/setup/deepops/.venv/bin/ansible-lint",
+  "ansible.validation.lint.arguments": "-c /mnt/data/setup/deepops/.ansible-lint",
+  "ansible.ansibleNavigator.path": "/mnt/data/setup/deepops/.venv/bin/ansible-navigator",
+  "ansible.playbook.arguments": "-c /mnt/data/setup/deepops/ansible.cfg",
 
   "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format",
+    // "editor.defaultFormatter": "foxundermoon.shell-format",
     "editor.detectIndentation": false,
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
@@ -124,5 +128,9 @@
       "playbooks/*/*.yml"
     ]
   },
-  "yaml.maxItemsComputed": 10000
+  "yaml.maxItemsComputed": 10000,
+
+  "git.repositoryScanMaxDepth": 1,
+  "githubRepositories.autoFetch.enabled": false,
+  "ansible.lightspeed.enabled": false
 }

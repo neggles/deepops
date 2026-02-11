@@ -1,0 +1,12 @@
+ansible==9.13.0
+ansible-lint==5.4.0
+Jinja2==3.1.5
+netaddr
+ruamel.yaml
+PyMySQL
+paramiko
+requests==2.31.0
+jmespath==0.10.0
+MarkupSafe==3.0.2
+selinux
+passlib>=1.7.4

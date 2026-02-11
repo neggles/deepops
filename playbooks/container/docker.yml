@@ -1,33 +1,36 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Gather docker preinstallation facts
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   become_method: sudo
   tags:
-  - docker
+    - docker
   vars_files:
     # include kubespray-defaults here so that we can set the facts using the
     # kubespray 0020-set_facts.yml tasks
-    - ../../submodules/kubespray/roles/kubespray-defaults/defaults/main.yml
+    - ../../submodules/kubespray/roles/kubespray-defaults/defaults/main/main.yml
     - ../../submodules/kubespray/roles/kubernetes/preinstall/defaults/main.yml
   tasks:
-    - name: include kubespray task to set facts required for docker role
-      include_tasks: ../../submodules/kubespray/roles/kubernetes/preinstall/tasks/0020-set_facts.yml
+    - name: Include kubespray task to set facts required for docker role
+      ansible.builtin.include_tasks:
+        file: ../../submodules/kubespray/roles/kubernetes/preinstall/tasks/0020-set_facts.yml
       when: docker_install | default('yes')
-    - name: remove docker overrides, specifically to deal with conflicting options from DGX OS
-      file:
+    - name: Remove docker overrides, specifically to deal with conflicting options from DGX OS
+      ansible.builtin.file:
         path: /etc/systemd/system/docker.service.d/docker-override.conf
         state: absent
       when: docker_install | default('yes')
 
-- hosts: "{{ hostlist | default('all') }}"
+- name: Install Docker
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   become_method: sudo
   tags:
-  - docker
+    - docker
   vars:
     # override deprecated dockerproject repo; old docker repo broken as of 03.04.2020
-    dockerproject_rh_repo_base_url: 'https://download.docker.com/linux/centos/7/$basearch/stable'
-    dockerproject_rh_repo_gpgkey: 'https://download.docker.com/linux/centos/gpg'
+    dockerproject_rh_repo_base_url: "https://download.docker.com/linux/centos/7/$basearch/stable"
+    dockerproject_rh_repo_gpgkey: "https://download.docker.com/linux/centos/gpg"
     fallback_ips: []
   roles:
     - role: kubespray-defaults

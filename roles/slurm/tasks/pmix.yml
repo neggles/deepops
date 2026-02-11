@@ -1,10 +1,10 @@
 ---
 - name: Set PMIx variables
-  set_fact:
-    pmix_build: no
-    pmix_ver_alt: "{{ pmix_version | replace('.','') }}"
+  ansible.builtin.set_fact:
+    slurm_pmix_build: false
+    slurm_pmix_ver_alt: "{{ pmix_version | replace('.', '') }}"
 
-- name: check installed PMIx version (if any)
+- name: Check installed PMIx version (if any)
   ansible.builtin.shell:
     cmd: |
       set -o pipefail
@@ -12,58 +12,58 @@
     executable: /bin/bash
   failed_when: false
   changed_when: false
-  register: pmix_info_version
+  register: slurm_pmix_info_version
 
-- name: build pmix if not installed, the version is different, or rebuild forced
-  set_fact:
-    pmix_build: yes
-  when: pmix_force_rebuild or (pmix_info_version.stdout != pmix_ver_alt)
+- name: Build pmix if not installed, the version is different, or rebuild forced
+  ansible.builtin.set_fact:
+    slurm_pmix_build: true
+  when: pmix_force_rebuild or (slurm_pmix_info_version.stdout != slurm_pmix_ver_alt)
 
-- name: install pmix build dependencies
-  apt:
+- name: Install pmix build dependencies
+  ansible.builtin.apt:
     name: "{{ slurm_pmix_deps }}"
     state: present
     cache_valid_time: 3600
 
-- name: remove existing pmix packages
-  apt:
+- name: Remove existing pmix packages
+  ansible.builtin.apt:
     name:
       - pmix
       - libpmix-dev
       - libpmix*
     state: absent
     cache_valid_time: 3600
-  failed_when: false
+  failed_when: false # don't fail if packages aren't present
 
-- name: check for existing build, uninstall if necessary, and clean up
-  when: pmix_build
+- name: Check for existing build, uninstall if necessary, and clean up
+  when: slurm_pmix_build
   block:
-    - name: check if we have an old build dir
+    - name: Check if we have an old build dir
       ansible.builtin.stat:
         path: "{{ pmix_build_dir }}"
-      register: pmix_old_build_dir
+      register: slurm_pmix_old_build_dir
 
-    - name: check if we have an old installed lib
+    - name: Check if we have an old installed lib
       ansible.builtin.stat:
         path: "{{ pmix_install_prefix }}"
-      register: pmix_old_install_dir
+      register: slurm_pmix_old_install_dir
 
-    - name: attempt to uninstall old version
+    - name: Attempt to uninstall old version
       community.general.make:
         chdir: "{{ pmix_build_dir }}"
         target: uninstall
-        jobs: "{{ ansible_processor_vcpus }}"
+        jobs: "{{ slurm_build_njobs }}"
       failed_when: false
-      when: pmix_old_build_dir.stat.exists and pmix_old_install_dir.stat.exists
+      when: slurm_pmix_old_build_dir.stat.exists and slurm_pmix_old_install_dir.stat.exists
 
-    - name: remove old build dir
+    - name: Remove old build dir
       ansible.builtin.file:
         path: "{{ pmix_build_dir }}"
         state: absent
-      when: pmix_old_build_dir.stat.exists
+      when: slurm_pmix_old_build_dir.stat.exists
 
 - name: Build PMIx
-  when: pmix_build
+  when: slurm_pmix_build
   block:
     - name: Create PMIx build directory
       ansible.builtin.file:
@@ -71,34 +71,46 @@
         state: directory
         mode: "0755"
 
-    - name: Download PMIx sources
+    - name: Download PMIx source to shared storage
+      ansible.builtin.get_url:
+        url: "{{ pmix_src_url }}"
+        dest: "{{ pmix_src_path }}"
+        mode: "0644"
+        checksum: "sha1:{{ pmix_src_sha1 }}"
+      environment: "{{ proxy_env if proxy_env is defined else {} }}"
+      delegate_to: "{{ groups['slurm-node'].0 }}"
+      run_once: true # noqa: run-once[task] (any node can do this)
+
+    - name: Extract PMIx sources
       ansible.builtin.unarchive:
-        src: "{{ pmix_src_url }}"
+        src: "{{ pmix_src_path }}"
         dest: "{{ pmix_build_dir }}"
-        remote_src: yes
+        remote_src: true
         extra_opts:
           - --strip-components=1
-      environment: "{{ proxy_env if proxy_env is defined else {} }}"
+        creates: "{{ pmix_build_dir }}/configure"
 
-    - name: clean PMIx src dir
+    - name: Clean PMIx src dir
       community.general.make:
         chdir: "{{ pmix_build_dir }}"
         target: distclean
+        jobs: "{{ slurm_build_njobs }}"
+      failed_when: false
 
-    - name: configure PMIx
+    - name: Configure PMIx
       ansible.builtin.command:
         cmd: "{{ pmix_configure }}"
         chdir: "{{ pmix_build_dir }}"
         creates: "{{ pmix_build_dir }}/Makefile"
 
-    - name: build PMIx
+    - name: Build PMIx
       community.general.make:
         chdir: "{{ pmix_build_dir }}"
         target: all
-        jobs: "{{ ansible_processor_vcpus }}"
+        jobs: "{{ slurm_build_njobs }}"
 
-    - name: install PMIx
+    - name: Install PMIx
       community.general.make:
         chdir: "{{ pmix_build_dir }}"
         target: install
-        jobs: "{{ ansible_processor_vcpus }}"
+        jobs: "{{ slurm_build_njobs }}"

@@ -2,8 +2,8 @@
 # un-drain nodes that are down due to an unexpected reboot during install
 # sudo scontrol update node=XXX state=idle
 # where XXX are the nodes that have changed and are marked as *down*
-- name: set nodes to idle
-  command: "scontrol update node={{ item }} state=idle"
+- name: Set nodes to idle
+  ansible.builtin.command: "scontrol update node={{ item }} state=idle"
   register: undrain_nodes_result
   failed_when: false
   with_items:

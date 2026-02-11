@@ -13,23 +13,23 @@ SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 ROOT_DIR=$(realpath "${SCRIPT_DIR}/../")
 
 # Configuration
-ANSIBLE_VERSION="${ANSIBLE_VERSION:-9.13.0}"     # Ansible version to install
-ANSIBLE_TOO_NEW="${ANSIBLE_TOO_NEW:-10.0.1}"    # Ansible version too new
+ANSIBLE_VERSION="${ANSIBLE_VERSION:-9.13.0}"        # Ansible version to install
+ANSIBLE_TOO_NEW="${ANSIBLE_TOO_NEW:-10.0.1}"        # Ansible version too new
 ANSIBLE_LINT_VERSION="${ANSIBLE_LINT_VERSION:-5.4.0}"
-CONFIG_DIR="${CONFIG_DIR:-${ROOT_DIR}/config}"            # Default configuration directory location
-DEEPOPS_TAG="${1:-master}"                      # DeepOps branch to set up
-JINJA2_VERSION="${JINJA2_VERSION:-3.1.5}"      # Jinja2 required version
-JMESPATH_VERSION="${JMESPATH_VERSION:-0.10.0}"    # jmespath pegged version, actual version probably not that crucial
-MARKUPSAFE_VERSION="${MARKUPSAFE_VERSION:-3.0.2}"  # MarkupSafe version
-PIP="${PIP:-pip3}"                              # Pip binary to use
-PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3.10}"    # Python3 path
-VENV_DIR="${VENV_DIR:-/opt/deepops/env}"        # Path to python virtual environment to create
+CONFIG_DIR="${CONFIG_DIR:-${ROOT_DIR}/config}"      # Default configuration directory location
+DEEPOPS_TAG="${1:-master}"                          # DeepOps branch to set up
+JINJA2_VERSION="${JINJA2_VERSION:-3.1.5}"           # Jinja2 required version
+JMESPATH_VERSION="${JMESPATH_VERSION:-0.10.0}"      # jmespath pegged version, actual version probably not that crucial
+MARKUPSAFE_VERSION="${MARKUPSAFE_VERSION:-3.0.2}"   # MarkupSafe version
+PIP="${PIP:-pip3}"                                  # Pip binary to use
+PYTHON_BIN="${PYTHON_BIN:-/usr/bin/python3.10}"     # Python3 path
+VENV_DIR="${VENV_DIR:-$ROOT_DIR/.venv}"             # Path to python virtual environment to create
 
 ###
 
 # Set distro-specific variables
 . /etc/os-release
-DEPS_DEB=(git virtualenv python3-virtualenv sshpass wget)
+DEPS_DEB=(git python3.10-venv sshpass wget curl)
 
 # Disable interactive prompts from Apt
 export DEBIAN_FRONTEND=noninteractive

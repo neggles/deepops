@@ -2,9 +2,10 @@
 - name: Install docker
   import_playbook: ../container/docker.yml
 
-- hosts: "{{ hostlist | default('all') }}"
+- name: "Install monitoring exporters | Install prometheus slurm exporter"
+  hosts: "{{ hostlist | default('all') }}"
   become: yes
   tasks:
-    - name: configure prometheus slurm exporter
-      include_role:
+    - name: Configure prometheus slurm exporter
+      ansible.builtin.include_role:
         name: prometheus-slurm-exporter

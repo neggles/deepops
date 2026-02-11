@@ -1,6 +1,6 @@
 ---
 - name: Get slurm group ID
-  ansible.builtin.cmd:
+  ansible.builtin.command:
     cmd: id -g {{ slurm_username }}
   register: cmd_slurm_group_id
   changed_when: false
@@ -17,19 +17,19 @@
     state: directory
     mode: "0755"
 
-- name: create prometheus config dir
+- name: Create prometheus config dir
   ansible.builtin.file:
     path: "{{ prometheus_config_dir }}"
     state: directory
     mode: "0755"
 
-- name: create prometheus endpoint config dir
+- name: Create prometheus endpoint config dir
   ansible.builtin.file:
     path: "{{ prometheus_cfg_endpoint_dir }}"
     state: directory
     mode: "0755"
 
-- name: install prometheus endpoint config file
+- name: Install prometheus endpoint config file
   ansible.builtin.template:
     src: "{{ slurm_exporter_conf_template }}"
     dest: "{{ prometheus_cfg_endpoint_dir }}/slurm-exporter.yml"
@@ -37,21 +37,21 @@
     group: root
     mode: 0644
 
-- name: create grafana data dir
+- name: Create grafana data dir
   ansible.builtin.file:
     path: "{{ grafana_data_dir }}"
     state: directory
     owner: "{{ grafana_user_id }}"
     mode: "0755"
 
-- name: create grafana dashboard dir
+- name: Create grafana dashboard dir
   ansible.builtin.file:
     path: "{{ grafana_cfg_dashboard_path }}"
     state: directory
     owner: "{{ grafana_user_id }}"
     mode: "0755"
 
-- name: copy grafana dashboards
+- name: Copy grafana dashboards
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "{{ grafana_cfg_dashboard_path }}"
@@ -82,7 +82,7 @@
     cmd: docker compose -f "{{ slurm_exporter_config_dir }}/docker-compose.yml" build
     chdir: "{{ slurm_exporter_config_dir }}"
 
-- name: install systemd unit file
+- name: Install systemd unit file
   ansible.builtin.template:
     src: templates/docker.slurm-exporter.service.j2
     dest: "/etc/systemd/system/{{ slurm_exporter_svc_name }}"
@@ -91,7 +91,7 @@
     mode: 0644
   notify: restart slurm-exporter
 
-- name: configure service
+- name: Configure service
   ansible.builtin.systemd:
     name: "{{ slurm_exporter_svc_name }}"
     state: "{{ slurm_exporter_state }}"

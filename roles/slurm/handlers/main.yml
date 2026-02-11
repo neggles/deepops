@@ -1,41 +1,42 @@
 ---
-- name: restart munge
-  service:
+- name: Restart munge
+  ansible.builtin.service:
     name: munge
     state: restarted
 
-- name: restart slurmd
-  service:
+- name: Restart slurmd
+  ansible.builtin.service:
     name: slurmd
     state: restarted
   when: is_compute
 
-- name: restart slurmdbd
-  service:
+- name: Restart slurmdbd
+  ansible.builtin.service:
     name: slurmdbd
     state: restarted
   when: is_controller
 
-- name: restart slurmctld
-  service:
+- name: Restart slurmctld
+  ansible.builtin.service:
     name: slurmctld
     state: restarted
   when: is_controller
 
-- name: restart logind
-  service:
+- name: Restart logind
+  ansible.builtin.service:
     name: systemd-logind.service
     state: restarted
-    enabled: yes
+    enabled: true
   when: is_compute
 
-- name: restart rsyslog
-  service:
+- name: Restart rsyslog
+  ansible.builtin.service:
     name: rsyslog
     state: restarted
 
-- name: update ld.so cache
-  command:
+- name: Update ld.so cache
+  ansible.builtin.command:
     cmd: ldconfig
-  become: yes
+  changed_when: false
+  become: true
   become_user: root

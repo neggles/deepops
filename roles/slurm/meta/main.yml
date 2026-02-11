@@ -1,3 +1,4 @@
+---
 dependencies:
   - role: facts
   - role: rsyslog_client

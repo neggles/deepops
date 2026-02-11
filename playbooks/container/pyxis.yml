@@ -1,32 +1,37 @@
 ---
-- hosts: slurm-master
+- name: Configure Pyxis on controller nodes
+  hosts: slurm-master
   tasks:
-    - name: set controller fact
-      set_fact:
+    - name: Set controller fact
+      ansible.builtin.set_fact:
         is_controller: true
       tags: always
 
-- hosts: slurm-node
+- name: Configure pyxis on non-controller nodes
+  hosts: slurm-node
   tasks:
-    - name: set compute fact
-      set_fact:
+    - name: Set compute fact
+      ansible.builtin.set_fact:
         is_compute: true
       tags: always
 
-- hosts: slurm-cluster
+- name: Configure enroot on all nodes
+  hosts: slurm-cluster
   become: yes
   tasks:
-    - name: set enroot DGX config fact
-      set_fact:
+    - name: Set enroot DGX config fact
+      ansible.builtin.set_fact:
         enroot_environ_config_files: "{{ enroot_environ_config_files_dgx }}"
       when: ansible_product_name is search("DGX")
 
-- hosts: slurm-node
+- name: Set up enroot on compute nodes
+  hosts: slurm-node
   become: yes
   roles:
     - name: nvidia.enroot
 
-- hosts: slurm-cluster
+- name: Set up pyxis on all nodes
+  hosts: slurm-cluster
   become: yes
   roles:
     - name: pyxis

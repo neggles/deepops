@@ -10,13 +10,13 @@
     state: restarted
   when: is_compute
 
-- name: restart slurmdbd
+- name: Restart slurmdbd
   service:
     name: slurmdbd
     state: restarted
   when: is_controller
 
-- name: restart slurmctld
+- name: Restart slurmctld
   service:
     name: slurmctld
     state: restarted

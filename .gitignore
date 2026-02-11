@@ -285,6 +285,9 @@ pyrightconfig.json
 /misc/
 /temp/
 
+# ansible vscode ext files
+.ansible/
+
 # direnv and dotenv files
 **/.env*
 !**/.env.example

@@ -1,10 +1,10 @@
 ---
-- name: gather os specific variables
-  include_vars: "{{ item }}"
+- name: Gather OS-specific variables
+  ansible.builtin.include_vars: "{{ item }}"
   with_first_found:
     - files:
-        - "{{ ansible_distribution|lower }}.yml"
-        - "{{ ansible_os_family|lower }}.yml"
+        - "{{ ansible_distribution | lower }}.yml"
+        - "{{ ansible_os_family | lower }}.yml"
       paths:
         - ../vars
       skip: true
@@ -12,16 +12,18 @@
     - always
 
 - name: Set slurm node resource facts
-  set_fact:
+  ansible.builtin.set_fact:
     slurm_resources:
       num_gpus: "{{ ansible_local.gpus.count | int }}"
       real_memory: "{{ (ansible_local.memory.total_mb | int) - 1024 }}"
       cpu_topology: "{{ ansible_local.topology.cpu_topology }}"
       gpu_affinity: "{{ range(ansible_local.gpus.count | int) | ansible.builtin.zip_longest(ansible_local.topology.gpu_topology if slurm_gpu_use_affinity else [], fillvalue=null) }}"
       mem_spec_limit: "{{ slurm_memory_reserved_mb if slurm_memory_reserved_mb > 0 else omit | default(omit) }}"
-      core_spec_count: "{{ slurm_cores_reserved if slurm_cores_reserved is number else omit }}"
-      cpu_spec_list: "{{ (slurm_cores_reserved | length) if slurm_cores_reserved is sequence else omit }}"
+      core_spec_count: "{{ slurm_cores_reserved if slurm_cores_reserved is number else none }}"
+      cpu_spec_list: "{{ (slurm_cores_reserved | length) if slurm_cores_reserved is sequence else none }}"
+  check_mode: false # never alters the system
 
 - name: Print slurm node resource facts
-  debug:
+  ansible.builtin.debug:
     var: slurm_resources
+    verbosity: 1

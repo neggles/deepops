@@ -35,10 +35,10 @@
   environment:
     CPPFLAGS: "-I {{ slurm_install_prefix }}/include/slurm"
   register: result
-  changed_when: "result.stdout != \"make: Nothing to be done for 'all'.\""
+  changed_when: 'result.stdout != "make: Nothing to be done for ''all''."'
   notify:
-    - restart slurmctld
-    - restart slurmd
+    - Restart slurmctld
+    - Restart slurmd
   tags: pyxis
 
 # Needed for 17.11, but not for 19.05. Doesn't hurt either way.
@@ -48,8 +48,8 @@
     dest: "{{ slurm_config_dir }}/"
     mode: "0644"
   notify:
-    - restart slurmctld
-    - restart slurmd
+    - Restart slurmctld
+    - Restart slurmd
   tags: pyxis
 
 - name: copy pyxis plugstack file
@@ -58,8 +58,8 @@
     dest: "{{ slurm_config_dir }}/plugstack.conf.d/"
     mode: "0644"
   notify:
-    - restart slurmctld
-    - restart slurmd
+    - Restart slurmctld
+    - Restart slurmd
   tags: pyxis
 
 - name: set pyxis shared-object permissions
