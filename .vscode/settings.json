@@ -8,17 +8,22 @@
   "prettier.tabWidth": 4,
   "prettier.printWidth": 110,
 
+  "git.repositoryScanMaxDepth": 1,
+  "githubRepositories.autoFetch.enabled": false,
+
   "files.associations": {
     "*.yaml": "yaml",
     "*.yml": "ansible",
     "*.log": "log",
-    "config/**/*.yml": "ansible",
-    "config/**/*.yaml": "ansible",
-    "playbooks/**/*.yml": "ansible",
-    "playbooks/**/*.yaml": "ansible",
-    "roles/**/*.yml": "ansible",
-    "roles/**/*.yaml": "ansible",
-    "tasks/**/*.yml": "ansible"
+    "${workspaceFolder}/config/**/*.{yml,yaml}": "ansible",
+    "${workspaceFolder}/config.example/**/*.{yml,yaml}": "ansible",
+    "**/playbooks/**/*.{yml,yaml}": "ansible",
+    "**/roles/**/*.{yml,yaml}": "ansible",
+    "**/tasks/**/*.{yml,yaml}": "ansible",
+    "**/group_vars/**/*.{yml,yaml}": "ansible",
+    "**/host_vars/**/*.{yml,yaml}": "ansible",
+    "**/vars/**/*.{yml,yaml}": "ansible",
+    "**/meta/**/*.{yml,yaml}": "ansible"
   },
   "files.exclude": {
     "**/.git": true,
@@ -63,11 +68,7 @@
     "yaml.validate": false
   },
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "ansible.ansible.path": "/mnt/data/setup/deepops/.venv/bin/ansible",
-  "ansible.validation.lint.path": "/mnt/data/setup/deepops/.venv/bin/ansible-lint",
-  "ansible.validation.lint.arguments": "-c /mnt/data/setup/deepops/.ansible-lint",
-  "ansible.ansibleNavigator.path": "/mnt/data/setup/deepops/.venv/bin/ansible-navigator",
-  "ansible.playbook.arguments": "-c /mnt/data/setup/deepops/ansible.cfg",
+  "ansible.lightspeed.enabled": false,
 
   "[shellscript]": {
     // "editor.defaultFormatter": "foxundermoon.shell-format",
@@ -128,9 +129,5 @@
       "playbooks/*/*.yml"
     ]
   },
-  "yaml.maxItemsComputed": 10000,
-
-  "git.repositoryScanMaxDepth": 1,
-  "githubRepositories.autoFetch.enabled": false,
-  "ansible.lightspeed.enabled": false
+  "yaml.maxItemsComputed": 10000
 }

@@ -4,135 +4,149 @@
   vars_files:
     - "{{ inventory_dir }}/vars/users.yml"
   vars:
-    # default vars (override in vars/users.yml)
     shared_home_root: "{{ shared_home_root | default('/mnt/weka/home') }}"
+    user_defaults:
+      is_active: true
+      is_admin: false
+      local_home: false
+      create_group: true
+      ssh_key_type: "ed25519"
+      slurm_account: "compute-account"
+
+    # default vars (override in vars/users.yml)
+
     users_create_groups: "{{ users_create_groups | default([]) }}"
     users_create_per_user_group: true
     users_default_shell: "/bin/bash"
     users_ssh_key_type: "ed25519"
     first_login_host: "{{ groups['slurm-login'].0 }}"
     # slurm config
-    slurm_account_name: "compute-account"
 
     # calculated vars (do not override)
     users_names: "{{ users | map(attribute='name') | list }}"
     users_dict: "{{ dict(users_names | zip(users)) }}"
   tasks:
     - name: Set user home dirs
-      ansible.builtin.set_fact:
+      ansible.builtin.set_fact: # noqa: run-once[task]
         users_dict: "{{ users_dict | combine({item.name: {'home': ('/home' if item.local_home else shared_home_root) + '/' + item.name}}, recursive=True) }}"
       loop: "{{ users }}"
       loop_control:
         label: "{{ item.name }} home={{ ('/home' if item.local_home else shared_home_root) + '/' + item.name }}"
       run_once: true
 
-    - name: Create groups
+    - name: Create shared user groups on all nodes
       ansible.builtin.group:
         name: "{{ item.name }}"
         gid: "{{ item.gid | default(omit) }}"
       loop: "{{ users_create_groups }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when:
+        - users_create_groups is defined
+        - users_create_groups | length > 0
       tags: ["users", "groups", "configuration"]
 
     - name: Create per-user groups
       ansible.builtin.group:
         name: "{{ item.name }}"
-        gid: "{{ item.gid | default(item.uid) | default(omit) }}"
+        gid: "{{ item.gid is defined | ternary(item.gid, item.uid) }}"
       loop: "{{ users }}"
       loop_control:
         label: "{{ item.name }}"
-      when: users_create_per_user_group and 'group' not in item
-      tags: ["users", "configuration"]
+      when: users_create_per_user_group | bool
+      tags: ["users", "groups", "configuration"]
 
-    - name: "Create users"
+    - name: Create user accounts on nodes
       ansible.builtin.user:
         name: "{{ item.name }}"
         uid: "{{ item.uid | default(omit) }}"
         group: "{{ item.group | default(item.name) }}"
-        shell: "{{ item.shell | default(users_default_shell) }}"
+        shell: "{{ item.enabled | ternary(item.shell | default(users_default_shell), '/sbin/nologin') }}"
         home: "{{ users_dict[item.name].home }}"
-        create_home: "{{ item.local_home or is_first_login }}"
+        create_home: "{{ item.local_home | ternary(true, is_first_login) }}"
         generate_ssh_key: "{{ is_first_login }}" # Generate SSH key only on first login node
-        ssh_key_type: ed25519
+        ssh_key_type: "{{ users_ssh_key_type }}"
         ssh_key_file: ".ssh/id_{{ users_ssh_key_type }}"
         ssh_key_comment: "{{ item.name }}@{{ slurm_cluster_name }}-cluster"
-        state: "{{ 'present' if item.enabled | default(true) else 'absent' }}"
       loop: "{{ users }}"
       loop_control:
         label: "{{ item.name }}"
+      when: item.enabled
       tags: ["users", "configuration"]
-      register: users_created
 
-    - name: Add user's configured SSH authorized_keys
-      ansible.posix.authorized_key:
-        user: "{{ item.name }}"
-        key: "{{ item.authorized_keys | join('\n') }}"
-      loop: "{{ users }}"
-      loop_control:
-        label: "{{ item.name }}"
-      tags: ["users", "configuration"]
-      when: (is_first_login or item.local_home) and item.enabled
-
-    - name: Retrieve user's generated cluster SSH key
+    - name: Retrieve user's generated SSH key from the first login node # noqa: run-once[task]
       ansible.builtin.slurp:
         src: "{{ users_dict[item.name].home }}/.ssh/id_{{ users_ssh_key_type }}.pub"
+      register: users_cluster_ssh_keys
       loop: "{{ users }}"
       loop_control:
         label: "{{ item.name }}"
-      delegate_to: "{{ first_login_host }}" # Delegate key retrieval to the login node
-      run_once: true
-      register: users_cluster_ssh_keys
       when: item.enabled
+      become: true
+      become_user: root
+      delegate_to: "{{ first_login_host }}"
+      run_once: true
       tags: ["users", "configuration", "ssh"]
 
     - name: Add user's generated cluster SSH key to authorized_keys
       ansible.posix.authorized_key:
         user: "{{ item.item.name }}"
         key: "{{ item.content | b64decode }}"
+        state: "{{ item.item.enabled | ternary('present', 'absent') }}"
+      loop: "{{ users_cluster_ssh_keys.results }}"
       loop_control:
         label: "{{ item.item.name }}"
-      loop: "{{ users_cluster_ssh_keys.results }}"
+      when:
+        - item.content is defined
+        - item.item.local_home | ternary(true, is_first_login)
       tags: ["users", "configuration"]
-      when: (is_first_login or item.item.local_home) and item.content is defined
 
-    - name: Set passwordless sudo for admin users
-      ansible.builtin.template:
-        src: "sudoers.j2"
-        dest: "/etc/sudoers.d/{{ item.name }}"
-        owner: root
-        group: root
-        mode: 0440
-        validate: "/usr/sbin/visudo -cf %s"
+    - name: Add user's configured SSH authorized_keys
+      ansible.posix.authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ item.authorized_keys | join('\n') }}"
+        state: "{{ item.enabled | ternary('present', 'absent') }}"
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when:
+        - item.authorized_keys is defined
+        - item.authorized_keys | length > 0
+        - item.local_home | ternary(true, is_first_login)
+      tags: ["users", "configuration"]
+
+    - name: Configure passwordless sudo for admin users
+      community.general.sudoers:
+        name: "{{ item.name }}"
+        user: "{{ item.name }}"
+        runas: "ALL"
+        host: "ALL"
+        commands: "ALL"
+        nopassword: true
+        state: "{{ item.is_admin | bool | ternary('present', 'absent') }}"
+        validation: detect
       loop: "{{ users }}"
       loop_control:
         label: "{{ item.name }} is_admin={{ item.is_admin }}"
-      when: item.is_admin | bool
       tags: ["users", "configuration"]
 
-    - name: Remove sudo for non-admin users
-      ansible.builtin.file:
-        path: "/etc/sudoers.d/{{ item.name }}"
-        state: absent
-      loop: "{{ users }}"
-      loop_control:
-        label: "{{ item.name }} is_admin={{ item.is_admin }}"
-      when: not item.is_admin | bool
-      tags: ["users", "configuration"]
-
-    - name: Check if user has a SLURM user account
+    - name: Check if user has a SLURM user account # noqa: run-once[task]
       ansible.builtin.shell:
         cmd: set -o pipefail && sacctmgr show user -nP | cut -d'|' -f1
         executable: /bin/bash
       changed_when: false
+      check_mode: false
       register: slurm_user_check
+      delegate_to: "{{ first_login_host }}" # Delegate SLURM user check to the login node
       run_once: true
       tags: ["users", "slurm"]
 
-    - name: Create SLURM user accounts
+    - name: Create SLURM user accounts # noqa: run-once[task]
       ansible.builtin.command:
         cmd: "sacctmgr -i add user {{ item.name }} account={{ item.slurm_account_name | default(slurm_account_name) }} adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
       loop: "{{ users }}"
       loop_control:
-          label: "{{ item.name }}, account={{ item.slurm_account_name | default(slurm_account_name) }}, kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
+        label: "{{ item.name }}, account={{ item.slurm_account_name | default(slurm_account_name) }}, kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
       when:
         - item.enabled | bool
         - item.name not in slurm_user_check.stdout_lines
@@ -144,7 +158,10 @@
       changed_when:
         - ('Nothing added' not in slurm_user_result.stdout)
         - ('Already existing account' not in slurm_user_result.stdout)
-      run_once: true # run only once
+      delegate_to: "{{ first_login_host }}" # Delegate SLURM user creation to the login node
+      run_once: true # Run only once since SLURM user accounts are cluster-wide, not per-node
+      become: true
+      become_user: root
       tags: ["users", "slurm"]
 
     - name: Print create result

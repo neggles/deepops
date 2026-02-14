@@ -294,30 +294,24 @@ pyrightconfig.json
 !**/.envrc.example
 
 # SSH key files
-**/id_rsa
-**/id_*_rsa
-**/id_ecdsa
-**/id_*_ecdsa
-**/id_ed25519
-**/id_*_ed25519
+**/id*_rsa
+**/id*_ecdsa
+**/id*_ed25519
 
 # password files
-**/*_pwd
-**/*_pwd.*
-**/*_pass
-**/*_pass.*
-**/*_password
-**/*_password.*
+**/*_pwd*
+**/*_pass*
+**/*_password*
 
 # x509 cert related
 **/*.key
 **/*.pem
 **/*.crt
 **/*.csr
+**/*.req
 
 # other secrets
-**/secrets.yaml
-**/secrets.yml
+**/secrets.y*ml
 **/secrets/
 
 # misc.
