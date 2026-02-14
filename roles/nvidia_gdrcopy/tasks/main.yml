@@ -1,0 +1,68 @@
+---
+- name: Ensure python3-apt is installed on apt-based systems
+  ansible.builtin.package:
+    name: python3-apt
+    state: present
+  when: ansible_pkg_mgr == "apt"
+  tags: ["gdrcopy", "build", "dependencies"]
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: "{{ ansible_pkg_mgr }}"
+    strategy: first
+  tags: ["gdrcopy", "build", "dependencies"]
+
+- name: Determine if we need to build gdrcopy
+  vars:
+    gdrcopy_installed_version: "{{ ansible_facts.packages['gdrcopy'][0].version | default('0.0.0') }}"
+  ansible.builtin.set_fact:
+    gdrcopy_build: "{{ gdrcopy_force_rebuild or (gdrcopy_installed_version is version(gdrcopy_version, '!=')) }}"
+  tags: ["gdrcopy", "build"]
+
+- name: Build and install gdrcopy (ubuntu)
+  when:
+    - ansible_distribution == "Ubuntu"
+    - gdrcopy_build
+  block:
+    - name: Get dpkg architecture
+      ansible.builtin.command:
+        cmd: /usr/bin/dpkg --print-architecture
+      register: gdrcopy_dpkg_arch
+      changed_when: false
+      check_mode: false
+      tags: ["gdrcopy", "build"]
+
+    - name: Set dpkg architecture and distribution facts for package naming
+      ansible.builtin.set_fact:
+        gdrcopy_dpkg_arch: "{{ gdrcopy_dpkg_arch.stdout }}"
+        gdrcopy_distribution: "{{ ansible_distribution }}{{ ansible_distribution_version | replace('.', '_') }}"
+      tags: ["gdrcopy", "build"]
+
+    - name: Set gdrcopy package names based on version, debian revision, architecture, and distribution
+      vars:
+        gdrcopy_pkg_version: "{{ gdrcopy_version }}-{{ gdrcopy_debian_version }}_{{ gdrcopy_dpkg_arch }}.{{ gdrcopy_distribution }}"
+      ansible.builtin.set_fact:
+        gdrcopy_main_pkg: "gdrcopy_{{ gdrcopy_pkg_version }}.deb"
+        gdrcopy_test_pkg: "gdrcopy-tests_{{ gdrcopy_pkg_version }}+cuda{{ cuda_version_major }}.{{ cuda_version_minor }}.deb"
+        gdrcopy_dkms_pkg: "gdrdrv-dkms_{{ gdrcopy_pkg_version }}.deb"
+        gdrcopy_lib_pkg: "libgdrapi_{{ gdrcopy_pkg_version }}.deb"
+      tags: ["gdrcopy", "build"]
+
+    - name: Build gdrcopy packages
+      delegate_to: "{{ gdrcopy_build_host }}"
+      run_once: true
+      ansible.builtin.import_tasks:
+        file: build-ubuntu.yml
+      tags: ["gdrcopy", "build"]
+
+- name: Install gdrcopy packages
+  ansible.builtin.import_tasks:
+    file: install-ubuntu.yml
+  when: ansible_distribution == "Ubuntu"
+  tags: ["gdrcopy", "install"]
+
+- name: Re-gather package facts
+  ansible.builtin.package_facts:
+    manager: "{{ ansible_pkg_mgr }}"
+    strategy: first
+  tags: ["gdrcopy", "install", "verification"]

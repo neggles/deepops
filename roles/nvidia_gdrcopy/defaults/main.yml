@@ -1,0 +1,19 @@
+---
+# 'cuda-toolkit' is the generic package and will pull the latest version
+# if you want a specific version, use i.e. cuda-toolkit=12.2.0-1
+cuda_version: cuda-toolkit-13-0
+nvshmem_version: 3.4.5
+
+cuda_version_major: "{{ cuda_version | regex_search('cuda-toolkit-(\\d+)-.*', '\\1') | first }}"
+cuda_version_minor: "{{ cuda_version | regex_search('cuda-toolkit-\\d+-(\\d+)', '\\1') | first }}"
+
+# default to building on the first login host
+gdrcopy_build_host: "{{ first_login_host }}"
+
+# GDRCopy
+gdrcopy_version: 2.5.1
+gdrcopy_debian_version: 1
+gdrcopy_src_url: "https://github.com/NVIDIA/gdrcopy.git"
+gdrcopy_repo_dir: "{{ deepops_dir }}/build/gdrcopy"
+gdrcopy_pkg_dir: "{{ shared_download_dir }}/gdrcopy-{{ gdrcopy_version }}"
+gdrcopy_force_rebuild: false

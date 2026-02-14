@@ -1,0 +1,34 @@
+- name: Gather and dump package facts
+  hosts: slurm-cluster
+  become: true
+  become_user: root
+  vars:
+    install_python3_apt: "{{ ansible_pkg_mgr == 'apt' | bool }}"
+  tasks:
+    - name: Ensure python3-apt is installed on apt-based systems
+      ansible.builtin.package:
+        name: python3-apt
+        state: present
+      when: install_python3_apt
+      tags: ["package-facts", "dependencies"]
+
+    - name: Gather package facts
+      ansible.builtin.package_facts:
+        manager: auto
+      tags: ["package-facts"]
+
+    - name: Dump package facts to file for debugging
+      ansible.builtin.copy:
+        content: "{{ ansible_facts.packages | to_yaml }}"
+        dest: "/tmp/{{ inventory_hostname }}-packages.yaml"
+        mode: "0644"
+        owner: "{{ ansible_user_id }}"
+        group: "{{ ansible_user_gid }}"
+      tags: ["package-facts", "debug"]
+
+    - name: Fetch dumped package facts to control node
+      ansible.builtin.fetch:
+        src: "/tmp/{{ inventory_hostname }}-packages.yaml"
+        dest: "{{ inventory_dir }}/debug/"
+        flat: true
+      tags: ["package-facts", "debug"]

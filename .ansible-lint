@@ -5,3 +5,6 @@ skip_list:
   - no-changed-when
   - var-naming[no-role-prefix]
   - role-name[path]
+exclude_paths:
+  - .cache/
+  - submodules/

@@ -1,0 +1,59 @@
+- name: Ensure build dependencies are installed
+  ansible.builtin.package:
+    name:
+      - build-essential
+      - devscripts
+      - debhelper
+      - fakeroot
+      - pkg-config
+      - dkms
+    state: present
+  tags: ["gdrcopy", "build", "dependencies"]
+
+- name: Clone/update gdrcopy source code
+  ansible.builtin.git:
+    repo: "{{ gdrcopy_src_url }}"
+    dest: "{{ gdrcopy_repo_dir }}"
+    version: "v{{ gdrcopy_version }}"
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"
+  tags: ["gdrcopy", "build", "download"]
+
+- name: Clean up before build (git clean)
+  ansible.builtin.command:
+    cmd: git clean -fdx
+    chdir: "{{ gdrcopy_repo_dir }}"
+  register: gdrcopy_git_clean
+  changed_when: gdrcopy_git_clean.stdout != "" # if there is output, we removed files, so consider it changed
+  when: gdrcopy_force_rebuild
+  tags: ["gdrcopy", "build"]
+
+- name: Build gdrcopy packages
+  ansible.builtin.shell:
+    cmd: ./build-deb-packages.sh
+    executable: /bin/bash
+    chdir: "{{ gdrcopy_repo_dir }}/packages"
+    creates: "{{ gdrcopy_main_pkg }}"
+  environment:
+    CUDA: "/usr/local/cuda-{{ cuda_version_major }}.{{ cuda_version_minor }}"
+  tags: ["gdrcopy", "build"]
+
+- name: Ensure package output directory exists
+  ansible.builtin.file:
+    path: "{{ gdrcopy_pkg_dir }}"
+    state: directory
+    mode: "0755"
+  tags: ["gdrcopy", "build", "package"]
+
+- name: Copy built packages to shared storage
+  ansible.builtin.copy:
+    remote_src: true
+    src: "{{ gdrcopy_repo_dir }}/packages/{{ item }}"
+    dest: "{{ gdrcopy_pkg_dir }}/{{ item }}"
+    mode: "0644"
+    force: true
+  loop:
+    - "{{ gdrcopy_main_pkg }}"
+    - "{{ gdrcopy_test_pkg }}"
+    - "{{ gdrcopy_dkms_pkg }}"
+    - "{{ gdrcopy_lib_pkg }}"
+  tags: ["gdrcopy", "build", "package"]

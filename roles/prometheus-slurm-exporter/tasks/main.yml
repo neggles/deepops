@@ -59,7 +59,7 @@
     mode: "0644"
   with_items:
     - slurm-dashboard.json
-  notify: restart grafana
+  notify: Restart grafana
 
 - name: Install Dockerfile
   ansible.builtin.copy:
@@ -89,7 +89,7 @@
     owner: root
     group: root
     mode: 0644
-  notify: restart slurm-exporter
+  notify: Restart slurm-exporter
 
 - name: Configure service
   ansible.builtin.systemd:
@@ -97,4 +97,4 @@
     state: "{{ slurm_exporter_state }}"
     enabled: "{{ slurm_exporter_enabled }}"
     daemon_reload: yes
-  notify: restart slurm-exporter
+  notify: Restart slurm-exporter

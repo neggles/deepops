@@ -1,0 +1,71 @@
+- name: Ensure DKMS is installed
+  ansible.builtin.package:
+    name: dkms
+    state: present
+  tags: ["gdrcopy", "install", "dependencies"]
+
+- name: Ensure cuda packages are installed
+  ansible.builtin.package:
+    name:
+      - "{{ cuda_version }}"
+      - "{{ cuda_version | replace('toolkit', 'nvml-dev') }}"
+    state: present
+  when: ansible_distribution == "Ubuntu"
+  tags: ["gdrcopy", "dependencies", "cuda"]
+
+- name: Ensure nvshmem is installed
+  ansible.builtin.package:
+    name:
+      - "libnvshmem3-cuda-{{ cuda_version_major }}={{ nvshmem_version }}*"
+      - "libnvshmem3-dev-cuda-{{ cuda_version_major }}={{ nvshmem_version }}*"
+      - "libnvshmem3-static-cuda-{{ cuda_version_major }}={{ nvshmem_version }}*"
+    state: present
+  when: ansible_distribution == "Ubuntu"
+  tags: ["gdrcopy", "dependencies", "nvshmem"]
+
+- name: Remove old gdrcopy packages if installed
+  ansible.builtin.apt:
+    name:
+      - gdrdrv-dkms
+      - libgdrapi
+      - gdrcopy
+      - gdrcopy-tests
+    state: absent
+  failed_when: false # don't fail if packages aren't present
+  tags: ["gdrcopy", "install"]
+
+- name: Install gdrcopy packages
+  ansible.builtin.apt:
+    deb: "{{ gdrcopy_pkg_dir }}/{{ item }}"
+    state: present
+    allow_downgrade: true
+    allow_unauthenticated: true
+  loop:
+    # ordering matters due to dependencies, must be dkms -> lib -> tests (optional) -> main
+    - "{{ gdrcopy_dkms_pkg }}"
+    - "{{ gdrcopy_lib_pkg }}"
+    - "{{ gdrcopy_test_pkg }}"
+    - "{{ gdrcopy_main_pkg }}"
+  tags: ["gdrcopy", "install"]
+
+- name: Ensure gdrcopy kernel module is loaded
+  community.general.modprobe:
+    name: gdrdrv
+    state: present
+    persistent: present
+  tags: ["gdrcopy", "install"]
+
+- name: Set nvidia driver module options
+  ansible.builtin.copy:
+    src: files/modprobe.d/nvidia.conf
+    dest: /etc/modprobe.d/nvidia.conf
+    mode: "0644"
+    owner: root
+    group: root
+  tags: ["nvidia", "modprobe", "options"]
+
+- name: Update initramfs to apply new module options
+  ansible.builtin.command:
+    cmd: update-initramfs -u -k all
+  changed_when: true # always consider this changed to ensure it runs when needed
+  tags: ["nvidia", "modprobe", "options"]
