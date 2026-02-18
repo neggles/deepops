@@ -1,0 +1,39 @@
+---
+# drive type (default is nvme, sata/sas currently unsupported)
+local_raid_drive_type: "nvme"
+# drive model as reported in ansible_devices
+local_raid_drive_model: null
+# expected number of drives to be used in the RAID array (used for validation)
+local_raid_drive_count: null
+
+# LVM VG/LV names
+local_raid_vg_name: "raid_vg"
+local_raid_lv_name: "raid_lv"
+# RAID type for LVM (e.g. raid0, raid1, raid5, etc.)
+local_raid_lv_type: "raid0"
+# for raid0 this should be equal to drive count, for raid5 it should be count-1, raid6 count-2, etc.
+local_raid_stripe_count: "{{ local_raid_drive_count }}"
+
+# filesystem to use on the local RAID volume (e.g. xfs, ext4)
+local_raid_fs_type: "xfs"
+# mkfs options to use when creating the filesystem
+local_raid_fs_opts: "{{ (local_raid_fs_type == 'xfs') | ternary('-m crc=0', omit) }}"
+
+# where to mount the local RAID volume
+local_raid_mount_point: "/mnt/{{ local_raid_drive_type }}"
+# mount options for the filesystem
+local_raid_mount_opts: "defaults,noatime,nodiratime,discard"
+
+# which user/group to chown the local RAID mount point to (e.g. for use as a shared scratch space)
+local_raid_chown_user: "root"
+local_raid_chown_group: "{{ local_raid_chown_user | default('root') }}"
+# permissions to set on the local RAID mount point
+local_raid_dir_mode: "0777"
+
+# recursively chown all files on the local RAID volume (use with caution, can take a while or cause problems)
+# note: this will *only* change the owner/group, permissions will not be affected
+local_raid_chown_recurse: false
+# whether to add an entry to /etc/fstab for auto-mount on reboot
+local_raid_automount: true
+# whether to force recreation of the local RAID volume on each run (use with caution, as this will destroy data on the volume)
+local_raid_force_recreate: false

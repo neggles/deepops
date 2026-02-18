@@ -1,0 +1,6 @@
+- name: Configure local disk RAID
+  hosts: slurm-node
+  become: yes
+  gather_facts: yes
+  roles:
+    - local-raid

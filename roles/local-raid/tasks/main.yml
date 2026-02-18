@@ -1,0 +1,250 @@
+---
+- name: Skip if local raid configuration is disabled
+  ansible.builtin.meta: end_host
+  when: not slurm_configure_local_raid
+  tags: ["local-raid", "configuration"]
+
+- name: Fail if required local raid variables are not defined
+  ansible.builtin.fail:
+    msg: "local_raid_drive_model and local_raid_drive_count must be defined when slurm_configure_local_raid is true"
+  when:
+    - slurm_configure_local_raid
+    - (local_raid_drive_model is undefined or local_raid_drive_count is undefined)
+  tags: ["local-raid", "configuration", "validation"]
+
+- name: Fail if local raid drive type is not supported
+  ansible.builtin.fail:
+    msg: "Unsupported local_raid_drive_type '{{ local_raid_drive_type }}'. Currently only 'nvme' is supported."
+  when:
+    - slurm_configure_local_raid
+    - local_raid_drive_type != "nvme"
+  tags: ["local-raid", "configuration", "validation"]
+
+- name: Identify disks matching the supplied drive model
+  ansible.builtin.set_fact:
+    local_raid_drives: "{{ ansible_devices | dict2items | community.general.json_query(nvme_drives_ids_query) }}"
+    # append _1 for the first nvme namespace
+    local_raid_id_suffix: "{{ (local_raid_drive_type == 'nvme') | ternary('_1', '') }}"
+  vars:
+    nvme_drives_ids_query: |
+      [?value.model=='{{ local_raid_drive_model }}'].{
+        device: key,
+        model: value.model,
+        serial: value.serial,
+        id: value.links.ids[?contains(@, '{{ local_raid_drive_type }}-{{ local_raid_drive_model | replace(' ', '_') }}')] | [0]
+      }
+  tags: ["local-raid", "discovery"]
+
+- name: Fail if the number of detected drives does not match the expected count
+  ansible.builtin.fail:
+    msg: |
+      Expected to find {{ local_raid_drive_count }} drives matching model {{ local_raid_drive_model }}, but found {{ local_raid_drives | length }}.
+      Detected devices with model {{ local_raid_drive_model }}: {{ local_raid_drives | map(attribute='device') | list | join(', ') }}
+      All detected device models: {{ local_raid_drives | map(attribute='model') | list | unique | join(', ') }}
+  when: local_raid_drives | length != local_raid_drive_count
+  tags: ["local-raid", "discovery"]
+
+- name: Map device names to their /dev/disk/by-id paths
+  ansible.builtin.set_fact:
+    local_raid_drives_with_path: >-
+      {{
+        (local_raid_drives_with_path | default([]))
+        + [ item | combine({'path': '/dev/disk/by-id/' ~ item.id ~ local_raid_id_suffix}) ]
+      }}
+  loop: "{{ local_raid_drives }}"
+  loop_control:
+    label: "{{ item.device }} -> /dev/disk/by-id/{{ item.id ~ local_raid_id_suffix }}"
+  tags: ["local-raid", "discovery"]
+
+- name: Overwrite local_raid_drives with the updated list that includes paths
+  ansible.builtin.set_fact:
+    local_raid_drives: "{{ local_raid_drives_with_path | sort(attribute='device') }}"
+    local_raid_drives_with_path: undefined
+  tags: ["local-raid", "discovery"]
+
+- name: Refresh mount facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - "min"
+      - "mounts"
+      - "devices"
+  tags: ["local-raid", "discovery"]
+
+- name: Check for existing LVM LV with the specified name
+  ansible.builtin.command:
+    cmd: "lvs --noheadings -o lv_name {{ local_raid_vg_name }}"
+  register: existing_lvs
+  changed_when: false # we're not actually changing anything here
+  failed_when: false
+  check_mode: false # readonly op
+  tags: ["local-raid", "discovery"]
+
+- name: Check for existing LVM VG with the specified name
+  ansible.builtin.command:
+    cmd: "vgs --noheadings -o vg_name"
+  register: existing_vgs
+  changed_when: false # we're not actually changing anything here
+  failed_when: false
+  check_mode: false # readonly op
+  tags: ["local-raid", "discovery"]
+
+- name: Set facts based on discovery results
+  ansible.builtin.set_fact:
+    local_raid_vg_exists: "{{ (existing_vgs.stdout_lines | select('contains', local_raid_vg_name) | list) | length > 0 }}"
+    local_raid_lv_exists: "{{ (existing_lvs.stdout_lines | select('contains', local_raid_lv_name) | list) | length > 0 }}"
+  tags: ["local-raid", "discovery"]
+
+- name: Create LVM RAID volume
+  when: local_raid_force_recreate or not (local_raid_vg_exists and local_raid_lv_exists)
+  tags: ["local-raid", "deployment"]
+  block:
+    - name: Ensure nvme-cli is installed
+      ansible.builtin.package:
+        name: nvme-cli
+        state: present
+      when: local_raid_drive_type == 'nvme'
+      tags: ["local-raid", "deployment", "dependencies"]
+
+    - name: Build list of PVs for LVM VG creation
+      ansible.builtin.set_fact:
+        local_raid_pvs: "{{ local_raid_drives | map(attribute='path') | list }}"
+      tags: ["local-raid", "deployment"]
+
+    - name: Clean up if force-recreating
+      when: local_raid_force_recreate
+      tags: ["local-raid", "deployment", "formatting"]
+      block:
+        - name: Unmount existing volume if mounted
+          ansible.posix.mount:
+            path: "{{ local_raid_mount_point }}"
+            state: unmounted
+
+        - name: Remove existing LVM LV if it exists
+          community.general.lvol:
+            vg: "{{ local_raid_vg_name }}"
+            lv: "{{ local_raid_lv_name }}"
+            state: absent
+            force: true
+          when: local_raid_lv_exists
+
+        - name: Remove existing LVM VG if it exists
+          community.general.lvg:
+            vg: "{{ local_raid_vg_name }}"
+            state: absent
+            force: true
+          when: local_raid_vg_exists
+
+        - name: Remove existing LVM PVs if they exist
+          ansible.builtin.command:
+            cmd: "pvremove --force {{ item.path }}"
+          loop: "{{ local_raid_drives }}"
+          loop_control:
+            label: "pvremove: {{ item.path }}"
+          when: local_raid_vg_exists or local_raid_lv_exists
+
+        - name: Get devicemapper entries
+          ansible.builtin.command:
+            cmd: "dmsetup ls -o devname"
+          register: dmsetup_output
+
+        - name: Remove stale devicemapper entries
+          ansible.builtin.command:
+            cmd: "dmsetup remove {{ item }}"
+          loop: "{{ dmsetup_output.stdout_lines | select('match', '^{{ local_raid_vg_name }}-{{ local_raid_lv_name }}-') | list }}"
+          loop_control:
+            label: "dmsetup remove {{ item }}"
+          failed_when: false # if these fail, it likely just means there were no stale entries, so ignore errors
+          tags: ["local-raid", "deployment", "formatting"]
+
+        - name: Format NVME devices
+          ansible.builtin.command:
+            cmd: "/usr/sbin/nvme format --timeout 60000 --force /dev/{{ item.device }}"
+          loop: "{{ local_raid_drives }}"
+          loop_control:
+            label: "nvme format: {{ item.device }}"
+          when: local_raid_drive_type == 'nvme'
+
+    - name: Rescan LVM devices
+      ansible.builtin.shell:
+        cmd: pvscan; vgscan; lvscan
+        executable: /bin/bash
+      changed_when: false # doesn't actually change anything
+      failed_when: false # errors here don't matter
+      check_mode: false # we want this to run even in check mode to ensure LVM state is up to date for subsequent tasks
+      tags: ["local-raid", "deployment", "formatting"]
+
+    - name: Refresh partition table on all drives
+      ansible.builtin.command:
+        cmd: "partprobe"
+      when: local_raid_drive_type == 'nvme'
+
+    - name: Create LVM VG for local RAID
+      community.general.lvg:
+        vg: "{{ local_raid_vg_name }}"
+        pvs: "{{ local_raid_pvs | join(',') }}"
+        pvresize: true
+        reset_pv_uuid: "{{ local_raid_force_recreate }}"
+        reset_vg_uuid: "{{ local_raid_force_recreate }}"
+        force: "{{ local_raid_force_recreate }}"
+        state: present
+      tags: ["local-raid", "deployment"]
+
+    - name: Create LVM LV for local RAID
+      community.general.lvol:
+        vg: "{{ local_raid_vg_name }}"
+        lv: "{{ local_raid_lv_name }}"
+        size: 100%VG
+        opts: "--type {{ local_raid_lv_type }} --stripes {{ local_raid_stripe_count }}"
+        force: "{{ local_raid_force_recreate }}"
+        state: present
+      tags: ["local-raid", "deployment"]
+
+- name: Create filesystem on local raid LV
+  community.general.filesystem:
+    fstype: "{{ local_raid_fs_type }}"
+    dev: "/dev/{{ local_raid_vg_name }}/{{ local_raid_lv_name }}"
+    opts: "{{ local_raid_fs_opts | default(omit) }}"
+    state: present
+  tags: ["local-raid", "deployment", "filesystem"]
+
+- name: Mount local raid LV and add to fstab
+  ansible.posix.mount:
+    src: "/dev/{{ local_raid_vg_name }}/{{ local_raid_lv_name }}"
+    path: "{{ local_raid_mount_point }}"
+    fstype: "{{ local_raid_fs_type }}"
+    opts: "{{ local_raid_mount_opts }}"
+    boot: "{{ local_raid_automount }}"
+    state: mounted
+  tags: ["local-raid", "deployment", "filesystem"]
+
+- name: Set ownership on local raid mount point
+  ansible.builtin.file:
+    path: "{{ local_raid_mount_point }}"
+    owner: "{{ local_raid_chown_user | default('root') }}"
+    group: "{{ local_raid_chown_group | default('root') }}"
+    recurse: "{{ local_raid_chown_recurse }}"
+    state: directory
+  tags: ["local-raid", "deployment", "filesystem"]
+
+- name: Set permissions on local raid mount point
+  ansible.builtin.file:
+    path: "{{ local_raid_mount_point }}"
+    mode: "{{ local_raid_dir_mode }}"
+    state: directory
+  tags: ["local-raid", "deployment", "filesystem"]
+
+- name: Refresh mount facts
+  ansible.builtin.setup:
+    gather_subset:
+      - "!all"
+      - "min"
+      - "mounts"
+      - "devices"
+  tags: ["local-raid", "deployment", "verification"]
+
+- name: Print mounted local RAID details
+  ansible.builtin.debug:
+    msg: "Local RAID mounted at {{ local_raid_mount_point }} with device /dev/{{ local_raid_vg_name }}/{{ local_raid_lv_name }}"
+  when: (ansible_mounts | selectattr('mount', 'equalto', local_raid_mount_point) | list | length) > 0
+  tags: ["local-raid", "deployment", "verification"]

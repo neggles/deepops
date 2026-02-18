@@ -1,0 +1,6 @@
+# Standalone playbook to update NHC config
+- name: Configure NHC
+  hosts: slurm-node
+  become: true
+  roles:
+    - name: nhc
