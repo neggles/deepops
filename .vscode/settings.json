@@ -68,6 +68,8 @@
     "yaml.validate": false
   },
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "ansible.ansible.path": ".venv/bin/ansible",
+  "ansible.validation.lint.arguments": "-c .ansible-lint",
   "ansible.lightspeed.enabled": false,
 
   "[shellscript]": {
@@ -113,21 +115,6 @@
   "[markdown]": {
     "files.trimTrailingWhitespace": false
   },
-  "yaml.schemas": {
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json": [
-      "*/group_vars/*.yml",
-      "*/host_vars/*.yml",
-      "*/vars/*.yml"
-    ],
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json": [
-      "roles/*/meta/*.yml"
-    ],
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/tasks": [
-      "roles/*/tasks/*.yml"
-    ],
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json#/$defs/playbook": [
-      "playbooks/*/*.yml"
-    ]
-  },
+  "yaml.schemas": {},
   "yaml.maxItemsComputed": 10000
 }

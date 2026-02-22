@@ -1,10 +1,18 @@
+---
+# .ansible-lint
+# skip updating collections
+offline: true
+# enable default rules
+use_default_rules: true
+# disable some other rules that deepops doesn't follow
 skip_list:
-  - risky-shell-pipe
-  - schema[meta]
-  - yaml[comments]
-  - no-changed-when
-  - var-naming[no-role-prefix]
-  - role-name[path]
+  - schema[meta] # we don't use meta/main.yml in our roles
+  - yaml[comments] # we use comments in our yaml files and ansible-lint doesn't like that
+  - no-changed-when # we use changed_when: false in some places where it's appropriate and ansible-lint doesn't like that
+  - risky-shell-pipe # we always set -euo pipefail
+  - var-naming[no-role-prefix] # deepops roles don't always follow this
+  - role-name[path] # or this
 exclude_paths:
   - .cache/
+  # kubespray and friends make it  a n g r y  but that's not our code
   - submodules/
