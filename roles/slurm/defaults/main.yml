@@ -3,13 +3,15 @@ epel_package: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansi
 epel_key_url: "https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
 
 deepops_dir: /opt/deepops
-slurm_build_dir: /opt/deepops/build/slurm
-hwloc_build_dir: /opt/deepops/build/hwloc
-pmix_build_dir: /opt/deepops/build/pmix
+deepops_build_dir: "{{ deepops_dir }}/build"
+slurm_build_dir: "{{ deepops_build_dir }}/slurm"
+hwloc_build_dir: "{{ deepops_build_dir }}/hwloc"
+pmix_build_dir: "{{ deepops_build_dir }}/pmix"
 
 slurm_workflow_build: true
-slurm_version: "23.02.4"
+slurm_version: "24.05.3"
 slurm_src_url: "https://download.schedmd.com/slurm/slurm-{{ slurm_version }}.tar.bz2"
+slurm_src_path: "{{ shared_download_dir }}/slurm-{{ slurm_version }}.tar.bz2"
 slurm_build_make_clean: false
 slurm_build_dir_cleanup: false
 slurm_config_dir: /etc/slurm
@@ -17,14 +19,26 @@ slurmctl_config_dir: /sw/.slurm
 slurm_sysconf_dir: /etc/sysconfig
 slurm_install_prefix: /usr/local
 slurm_cuda_prefix: /usr/local/cuda
-slurm_configure:
-  "./configure --prefix={{ slurm_install_prefix }} --disable-dependency-tracking --disable-debug --disable-x11 --enable-really-no-cray --enable-salloc-kill-cmd
-  --with-hdf5=no --sysconfdir={{ slurm_config_dir }} --enable-pam --with-pam_dir={{ slurm_pam_lib_dir }} --with-shared-libslurm --without-rpath --with-pmix={{ pmix_install_prefix
-  }} --with-hwloc={{ hwloc_install_prefix }}"
-slurm_configure_nvml:
-  "./configure --prefix={{ slurm_install_prefix }} --disable-dependency-tracking --disable-debug --disable-x11 --enable-really-no-cray --enable-salloc-kill-cmd
-  --with-hdf5=no --sysconfdir={{ slurm_config_dir }} --enable-pam --with-pam_dir={{ slurm_pam_lib_dir }} --with-shared-libslurm --without-rpath --with-pmix={{ pmix_install_prefix
-  }} --with-hwloc={{ hwloc_install_prefix }} --with-nvml={{ slurm_cuda_prefix }}"
+
+slurm_enable_sview: false
+
+slurm_configure_common:
+  - ./configure
+  - --prefix={{ slurm_install_prefix }}
+  - --disable-dependency-tracking
+  - --disable-debug
+  - "{{ slurm_enable_sview | ternary('--enable-x11', '--disable-x11') }}"
+  - --enable-salloc-kill-cmd
+  - --with-hdf5=no
+  - --sysconfdir={{ slurm_config_dir }}
+  - --enable-pam
+  - --with-pam_dir={{ slurm_pam_lib_dir }}
+  - --with-shared-libslurm
+  - --without-rpath
+  - --with-pmix={{ pmix_install_prefix }}
+  - --with-hwloc={{ hwloc_install_prefix }}
+slurm_configure: "{{ slurm_configure_common | join(' ') }}"
+slurm_configure_nvml: "{{ (slurm_configure_common + ['--with-nvml=' ~ slurm_cuda_prefix]) | join(' ') }}"
 slurm_force_rebuild: false
 slurm_contain_ssh: true
 slurm_hide_login_gpus: true

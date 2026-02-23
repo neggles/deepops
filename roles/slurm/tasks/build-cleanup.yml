@@ -1,7 +1,7 @@
 ---
 - name: Make clean in build directory after install
-  ansible.builtin.command: make clean
-  args:
+  community.general.make:
+    target: clean
     chdir: "{{ slurm_build_dir }}"
   failed_when: false
   when: slurm_build_make_clean

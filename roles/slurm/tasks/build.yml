@@ -13,13 +13,13 @@
     dest: /etc/ld.so.conf.d/slurm.conf
     mode: "0644"
   notify:
-    - update ld.so cache
+    - Update ld.so cache
 
 - name: Setup munge
   ansible.builtin.include_tasks:
     file: munge.yml
 
-- name: Setup hwlock
+- name: Setup hwloc
   ansible.builtin.include_tasks:
     file: hwloc.yml
   tags: hwloc
@@ -64,20 +64,27 @@
 
 - name: Going to rebuild slurm?
   ansible.builtin.debug:
-    msg: "Rebuild Slurm? {{ slurm_build }}"
+    msg: "Will build slurm: {{ slurm_build }}"
+    verbosity: 0
 
 - name: Install build dependencies
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name: "{{ slurm_build_deps }}"
     state: present
 
-- name: Install build dependencies
-  ansible.builtin.apt:
+- name: Install build dependencies for sview (if enabled)
+  ansible.builtin.package:
+    name: "{{ slurm_sview_build_deps }}"
+    state: present
+  when: slurm_enable_sview
+
+- name: Install build dependencies for NVML (if enabled)
+  ansible.builtin.package:
     name: "{{ cuda_version | replace('toolkit', 'nvml-dev') }}"
     state: present
   when: slurm_autodetect_nvml or slurm_enable_nvml
 
-- name: Remove slurm packages
+- name: Remove distribution slurm packages (Ubuntu)
   ansible.builtin.apt:
     name:
       - slurm
@@ -86,11 +93,12 @@
       - slurmdbd
       - slurmd
       - slurmrestd
+      - sview
     state: absent
   when: ansible_distribution == 'Ubuntu'
   failed_when: false
 
-- name: Remove slurm packages
+- name: Remove distribution slurm packages (RHEL)
   ansible.builtin.dnf:
     name: "{{ item }}"
     state: absent
@@ -102,7 +110,7 @@
 - name: Gather service facts
   ansible.builtin.service_facts:
 
-- name: When building, try to uninstall first before downloading source
+- name: Check for existing build, uninstall if necessary, and clean up
   when: slurm_build
   block:
     # This service should be stopped before uninstalling slurm
@@ -110,113 +118,135 @@
       ansible.builtin.service:
         name: "docker.slurm-exporter.service"
         state: stopped
-      when: (ansible_distribution == 'Ubuntu') and ("docker.slurm-exporter.service" in ansible_facts.services)
+      when:
+        - ansible_distribution == 'Ubuntu'
+        - ("docker.slurm-exporter.service" in ansible_facts.services)
+      register: slurm_exporter_service_stopped
+      failed_when: false # if this fails that's fine, maybe the service doesn't exist or is already stopped
 
-    - name: Check that we have an old build dir
+    - name: Check if we have an old build dir
       ansible.builtin.stat:
         path: "{{ slurm_build_dir }}"
       register: slurm_old_build_dir
 
-    - name: Uninstall old verson
-      ansible.builtin.command: make -j uninstall
-      args:
+    - name: Attempt to uninstall old version
+      community.general.make:
+        target: uninstall
         chdir: "{{ slurm_build_dir }}"
-      failed_when: false
+        jobs: "{{ slurm_build_njobs }}"
+      failed_when: false # if this fails that's fine, we're purging it next anyway
       when: slurm_old_build_dir.stat.exists
 
     - name: Remove old build dir
       ansible.builtin.file:
         path: "{{ slurm_build_dir }}"
         state: absent
+      when: slurm_old_build_dir.stat.exists
 
     - name: Remove old lib dir
       ansible.builtin.file:
         path: "{{ slurm_install_prefix }}/lib/slurm"
         state: absent
 
-- name: Make build directory
-  ansible.builtin.file:
-    path: "{{ slurm_build_dir }}"
-    state: directory
-    mode: "0755"
+- name: Build Slurm
   when: slurm_build
+  block:
+    - name: Create build directory
+      ansible.builtin.file:
+        path: "{{ slurm_build_dir }}"
+        state: directory
+        mode: "0755"
+      when: slurm_build
 
-- name: Download source
-  ansible.builtin.unarchive:
-    src: "{{ slurm_src_url }}"
-    remote_src: true
-    dest: "{{ slurm_build_dir }}"
-    extra_opts:
-      - --strip-components=1
-  environment: "{{ proxy_env if proxy_env is defined else {} }}"
-  when: slurm_build
+    - name: Download slurm source to shared storage
+      ansible.builtin.get_url:
+        url: "{{ slurm_src_url }}"
+        dest: "{{ slurm_src_path }}"
+        mode: "0644"
+      environment: "{{ proxy_env if proxy_env is defined else {} }}"
+      delegate_to: "{{ groups['slurm-node'].0 }}"
+      run_once: true # noqa: run-once[task] (any node can do this)
 
-- name: Clean src dir
-  ansible.builtin.command: make distclean
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  failed_when: false
-  when: slurm_build
+    - name: Extract slurm sources
+      ansible.builtin.unarchive:
+        src: "{{ slurm_src_path }}"
+        dest: "{{ slurm_build_dir }}"
+        remote_src: true
+        extra_opts:
+          - --strip-components=1
+        creates: "{{ slurm_build_dir }}/configure"
 
-- name: Configure
-  ansible.builtin.command: "{{ slurm_configure }}"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build and (not slurm_autodetect_nvml)
+    - name: Clean slurm src dir
+      community.general.make:
+        chdir: "{{ slurm_build_dir }}"
+        target: distclean
+        jobs: "{{ slurm_build_njobs }}"
+      failed_when: false # if this fails that's fine
 
-- name: Configure
-  ansible.builtin.command: "{{ slurm_configure_nvml }}"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build and slurm_autodetect_nvml
+    - name: Configure slurm (without NVML)
+      ansible.builtin.command:
+        cmd: "{{ slurm_configure }}"
+        chdir: "{{ slurm_build_dir }}"
+        creates: "{{ slurm_build_dir }}/Makefile"
+      when:
+        - slurm_build
+        - not slurm_autodetect_nvml
 
-- name: Build
-  ansible.builtin.shell: "make -j$(nproc) > build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build
+    - name: Configure slurm (with NVML)
+      ansible.builtin.command:
+        cmd: "./configure {{ slurm_configure_nvml }}"
+        chdir: "{{ slurm_build_dir }}"
+        creates: "{{ slurm_build_dir }}/Makefile"
+      when:
+        - slurm_build
+        - slurm_autodetect_nvml
 
-- name: Build contrib
-  ansible.builtin.shell: "make -j$(nproc) contrib >> build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build
+    - name: Build Slurm
+      community.general.make:
+        target:
+          - all
+          - contrib
+        chdir: "{{ slurm_build_dir }}"
+        jobs: "{{ slurm_build_njobs }}"
+      when: slurm_build
 
-- name: Install
-  ansible.builtin.shell: "make -j$(nproc) install >> build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build
-  notify:
-    - Restart slurmd
-    - Restart slurmdbd
-    - Restart slurmctld
+    - name: Install Slurm
+      community.general.make:
+        target:
+          - install
+          - install-contrib
+        chdir: "{{ slurm_build_dir }}"
+        jobs: "{{ slurm_build_njobs }}"
+      when: slurm_build
+      notify:
+        - Restart slurmd
+        - Restart slurmdbd
+        - Restart slurmctld
 
-- name: Install contrib
-  ansible.builtin.shell: "make -j$(nproc) install-contrib >> build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}"
-  when: slurm_build
-  notify:
-    - Restart slurmd
-    - Restart slurmdbd
-    - Restart slurmctld
+    - name: Build pam_slurm_adopt
+      community.general.make:
+        target: all
+        chdir: "{{ slurm_build_dir }}/contribs/pam_slurm_adopt"
+        jobs: "{{ slurm_build_njobs }}"
 
-- name: Build pam_slurm_adopt
-  ansible.builtin.shell: "make -j$(nproc) >> ../../build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}/contribs/pam_slurm_adopt"
-  when: slurm_build
+    - name: Install pam_slurm_adopt
+      community.general.make:
+        target: install
+        chdir: "{{ slurm_build_dir }}/contribs/pam_slurm_adopt"
+        jobs: "{{ slurm_build_njobs }}"
+      notify:
+        - Restart slurmd
+        - Restart slurmdbd
+        - Restart slurmctld
 
-- name: Install pam_slurm_adopt
-  ansible.builtin.shell: "make -j$(nproc) install >> ../../build.log 2>&1"
-  args:
-    chdir: "{{ slurm_build_dir }}/contribs/pam_slurm_adopt"
-  when: slurm_build
-  notify:
-    - Restart slurmd
-    - Restart slurmdbd
-    - Restart slurmctld
+- name: Install bash completion script
+  ansible.builtin.copy:
+    src: "{{ slurm_build_dir }}/contribs/slurm_completion_help/slurm_completion.sh"
+    dest: /etc/bash_completion.d/slurm-completion.sh
+    mode: "0644"
+    owner: root
+    group: root
+  when: ansible_distribution == 'Ubuntu'
 
 - name: Fix library dir permissions
   ansible.builtin.file:
@@ -229,10 +259,11 @@
     path: "{{ deepops_dir }}"
     state: directory
     mode: "0755"
-    recurse: true
 
 - name: Start docker slurm exporter service again
   ansible.builtin.service:
     name: "docker.slurm-exporter.service"
-    state: restarted
-  when: (ansible_distribution == 'Ubuntu') and ("docker.slurm-exporter.service" in ansible_facts.services)
+    state: started
+  when:
+    - ansible_distribution == 'Ubuntu'
+    - ("docker.slurm-exporter.service" in ansible_facts.services)
