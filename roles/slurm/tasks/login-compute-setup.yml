@@ -8,9 +8,7 @@
       systemctl set-property sshd.service DeviceAllow="/dev/nvidiactl"
     fi
   args:
-    creates:
-      "{{ '/etc/systemd/system.control/sshd.service.d/50-DeviceAllow.conf' if ansible_os_family == 'RedHat' else '/etc/systemd/system.control/ssh.service.d/50-DeviceAllow.conf'
-      }}"
+    creates: "{{ ansible_os_family == 'RedHat' | ternary('/etc/systemd/system.control/sshd.service.d/50-DeviceAllow.conf', '/etc/systemd/system.control/ssh.service.d/50-DeviceAllow.conf') }}"
   when: is_controller and slurm_hide_login_gpus
   tags:
     - config
