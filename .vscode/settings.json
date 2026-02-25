@@ -69,7 +69,6 @@
     "yaml.validate": false
   },
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
-  "ansible.ansible.path": ".venv/bin/ansible",
   "ansible.validation.lint.arguments": "-c .ansible-lint",
   "ansible.lightspeed.enabled": false,
 
