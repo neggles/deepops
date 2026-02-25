@@ -20,14 +20,14 @@ slurm_sysconf_dir: /etc/sysconfig
 slurm_install_prefix: /usr/local
 slurm_cuda_prefix: /usr/local/cuda
 
-slurm_enable_sview: false
+slurm_include_sview: false
 
-slurm_configure_common:
+slurm_configure_args:
   - ./configure
   - --prefix={{ slurm_install_prefix }}
   - --disable-dependency-tracking
   - --disable-debug
-  - "{{ slurm_enable_sview | ternary('--enable-x11', '--disable-x11') }}"
+  - "{{ slurm_include_sview | ternary('--enable-x11', '--disable-x11') }}"
   - --enable-salloc-kill-cmd
   - --with-hdf5=no
   - --sysconfdir={{ slurm_config_dir }}
@@ -37,8 +37,8 @@ slurm_configure_common:
   - --without-rpath
   - --with-pmix={{ pmix_install_prefix }}
   - --with-hwloc={{ hwloc_install_prefix }}
-slurm_configure: "{{ slurm_configure_common | join(' ') }}"
-slurm_configure_nvml: "{{ (slurm_configure_common + ['--with-nvml=' ~ slurm_cuda_prefix]) | join(' ') }}"
+slurm_configure: "{{ slurm_configure_args | join(' ') }}"
+slurm_configure_nvml: "{{ [slurm_configure, ('--with-nvml=' ~ slurm_cuda_prefix)] | join(' ') }}"
 slurm_force_rebuild: false
 slurm_contain_ssh: true
 slurm_hide_login_gpus: true
@@ -49,12 +49,23 @@ slurm_password: ReplaceWithASecurePasswordInTheVault
 slurm_user_uid: 22078
 slurm_user_home: /local/slurm
 
+slurm_include_slurmrestd: false
+slurm_restd_username: slurmrestd
+slurm_restd_user_uid: 22079
+slurm_restd_user_home: /local/slurmrestd
+slurm_restd_jwt_key_path: "{{ slurm_state_save_location }}/jwt_hs256.key"
+# whether to allow users to create JWTs themselves, or just admins
+slurm_restd_disable_token_creation: true
+# unix socket. can also pass a TCP socket, e.g. :6820, https://0.0.0.0:6820, etc.
+slurm_restd_listen: "unix://run/slurmrestd/slurmrestd.socket"
+
 slurm_allow_ssh_user: []
 slurm_db_username: slurm
 slurm_db_password: AlsoReplaceWithASecurePasswordInTheVault
 
 slurm_enable_ha: false
-slurm_ha_state_save_location: "/sw/slurm"
+slurm_ha_state_save_location: "{{ shared_fs_root }}/slurm/state"
+slurm_state_save_location: "{{ slurm_enable_ha | ternary(slurm_ha_state_save_location, '/var/spool/slurm/ctld') }}"
 
 is_controller: false
 is_compute: false
@@ -121,6 +132,9 @@ slurm_fix_shm: true
 slurm_enable_pam_slurm_adopt: true
 # Restrict user SSH access to only allow users with a running job
 slurm_restrict_node_access: true
+# if non-null, accounting limits will be enforced as specified
+slurm_accounting_enforce: false
+slurm_accounting_enforce_kind: "associations,limits,qos"
 
 slurm_include_hwloc: true
 hwloc_version: 2.11.2

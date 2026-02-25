@@ -1,23 +1,29 @@
 ---
-- name: Copy service files
+- name: Copy controller service files
   ansible.builtin.copy:
     src: "{{ slurm_build_dir }}/etc/{{ item }}"
     dest: "/etc/systemd/system/{{ item }}"
     remote_src: true
     mode: "0644"
-  with_items:
+  loop:
     - slurmctld.service
     - slurmdbd.service
   when: is_controller
   failed_when: false
 
-- name: Copy service files
+- name: Template slurmrestd service file
+  ansible.builtin.template:
+    src: "etc/systemd/system/slurmrestd.service.j2"
+    dest: "/etc/systemd/system/slurmrestd.service"
+    mode: "0644"
+  when: is_controller and slurm_include_slurmrestd
+  failed_when: false
+
+- name: Copy slurmd service file
   ansible.builtin.copy:
-    src: "{{ slurm_build_dir }}/etc/{{ item }}"
-    dest: "/etc/systemd/system/{{ item }}"
+    src: "{{ slurm_build_dir }}/etc/slurmd.service"
+    dest: "/etc/systemd/system/slurmd.service"
     remote_src: true
     mode: "0644"
-  with_items:
-    - slurmd.service
   when: is_compute
   failed_when: false

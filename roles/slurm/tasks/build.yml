@@ -74,9 +74,9 @@
 
 - name: Install build dependencies for sview (if enabled)
   ansible.builtin.package:
-    name: "{{ slurm_sview_build_deps }}"
+    name: "{{ slurm_sview_deps }}"
     state: present
-  when: slurm_enable_sview
+  when: slurm_include_sview
 
 - name: Install build dependencies for NVML (if enabled)
   ansible.builtin.package:

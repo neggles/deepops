@@ -1,10 +1,4 @@
 ---
-- name: Create slurm user home
-  ansible.builtin.file:
-    path: "{{ slurm_user_home }}"
-    recurse: true
-    state: directory
-
 - name: Create slurm user
   ansible.builtin.user:
     name: "{{ slurm_username }}"
@@ -12,3 +6,14 @@
     system: true
     home: "{{ slurm_user_home }}"
     uid: "{{ slurm_user_uid }}"
+    create_home: true
+
+- name: Create slurmrestd user
+  ansible.builtin.user:
+    name: "{{ slurm_restd_username }}"
+    state: present
+    system: true
+    home: "{{ slurm_restd_user_home }}"
+    uid: "{{ slurm_restd_user_uid }}"
+    create_home: true
+  when: is_controller and slurm_include_slurmrestd

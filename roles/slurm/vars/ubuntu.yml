@@ -26,5 +26,5 @@ slurm_pmix_deps:
 slurm_hwloc_deps:
   - build-essential
 
-slurm_sview_build_deps:
+slurm_sview_deps:
   - libgtk2.0-dev

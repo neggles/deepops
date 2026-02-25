@@ -1,6 +1,7 @@
 ---
 - name: Gather OS-specific variables
-  ansible.builtin.include_vars: "{{ item }}"
+  ansible.builtin.include_vars:
+    file: "{{ item }}"
   with_first_found:
     - files:
         - "{{ ansible_distribution | lower }}.yml"

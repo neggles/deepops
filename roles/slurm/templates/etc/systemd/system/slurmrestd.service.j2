@@ -1,0 +1,21 @@
+[Unit]
+Description=Slurm REST daemon
+After=network-online.target remote-fs.target slurmctld.service
+Wants=network-online.target
+ConditionPathExists={{ slurm_config_dir }}/slurm.conf
+
+[Service]
+Type=simple
+EnvironmentFile=-{{ slurm_sysconf_dir }}/slurmrestd
+EnvironmentFile=-/etc/default/slurmrestd
+User={{ slurm_restd_user }}
+Group={{ slurm_restd_user }}
+ExecStart={{ slurm_install_prefix }}/sbin/slurmrestd $SLURMRESTD_OPTIONS
+# Enable auth/jwt be default, comment out the line to disable it for slurmrestd
+Environment=SLURM_JWT=daemon
+# Listen on TCP socket by default.
+Environment=SLURMRESTD_LISTEN={{ slurm_restd_listen }}
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target

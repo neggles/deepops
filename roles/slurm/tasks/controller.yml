@@ -1,13 +1,12 @@
 ---
 - name: Install dependencies
-  ansible.builtin.apt:
+  ansible.builtin.package:
     name:
       - mariadb-server
       - python3-mysqldb
       - s-nail
       - ssmtp
     state: present
-    cache_valid_time: 3600
 
 - name: Setup slurm db user
   community.mysql.mysql_user:
@@ -23,7 +22,7 @@
     state: directory
     owner: slurm
     mode: "0755"
-  with_items:
+  loop:
     - "{{ slurm_config_dir }}"
     - "{{ slurmctl_config_dir }}"
     - /var/spool/slurm/ctld
@@ -45,6 +44,7 @@
   when: not slurm_conf_symlink
   notify:
     - Restart slurmctld
+    - Restart slurmrestd
   tags:
     - config
 
@@ -57,7 +57,7 @@
   tags:
     - config
 
-- name: Symlink slurm.conf (shared mode)
+- name: Symlink slurm.conf on all nodes (shared mode)
   ansible.builtin.file:
     path: "{{ slurm_config_dir }}/slurm.conf"
     state: link
@@ -66,8 +66,37 @@
   when: slurm_conf_symlink
   notify:
     - Restart slurmctld
+    - Restart slurmrestd
   tags:
     - config
+
+- name: Set up slurmrestd
+  when: slurm_include_slurmrestd
+  block:
+    - name: Create JWT key for slurmrestd
+      ansible.builtin.command:
+        cmd: dd if=/dev/random of={{ inventory_dir }}/secrets/slurmrestd_jwt_hs256.key bs=32 count=1
+        creates: "{{ inventory_dir }}/secrets/slurmrestd_jwt_hs256.key"
+      changed_when: false # doesn't actually change target hosts at all
+      delegate_to: localhost
+      run_once: true
+
+    - name: Copy JWT key to controllers
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/secrets/slurmrestd_jwt_hs256.key"
+        dest: "{{ slurm_restd_jwt_key_path }}"
+        owner: "{{ slurm_username }}"
+        mode: "0600"
+        group: "{{ slurm_user_gid | default(slurm_username) }}"
+
+    - name: Set ACL on JWT key to allow slurmrestd user to read it
+      ansible.posix.acl:
+        path: "{{ slurm_restd_jwt_key_path }}"
+        entity: "{{ slurm_restd_username }}"
+        etype: user
+        permissions: r
+        state: present
+      when: slurm_restd_username != slurm_username
 
 - name: Configure slurmdbd
   ansible.builtin.template:
@@ -80,12 +109,13 @@
   tags:
     - config
 
-- name: Restart slurmdbd
+- name: Restart slurmdbd # noqa no-handler (needs to happen *now*)
   ansible.builtin.systemd:
     name: slurmdbd
     state: restarted
     enabled: true
     daemon-reload: true
+  when: slurmdbd_conf_result.changed
 
 - name: Wait for slurmdbd to be available
   ansible.builtin.wait_for:
@@ -117,7 +147,7 @@
   register: create_user_result
   failed_when: "create_user_result.rc != 0 and 'Nothing added' not in create_user_result.stdout and 'Already existing account' not in create_user_result.stdout"
   changed_when: "'Nothing added' not in create_user_result.stdout and 'Already existing account' not in create_user_result.stdout"
-  with_items:
+  loop:
     - "{{ user }}"
   environment:
     PATH: "{{ slurm_install_prefix }}/bin:{{ ansible_env.PATH }}"
@@ -133,6 +163,13 @@
     seconds: 20
   when: slurm_downgrade
 
+- name: Kill slurmrestd
+  ansible.builtin.command:
+    cmd: killall slurmrestd
+  changed_when: false
+  failed_when: false
+  when: slurm_include_slurmrestd and slurm_downgrade
+
 - name: Kill slurmctld
   ansible.builtin.command:
     cmd: killall slurmctld
@@ -146,3 +183,11 @@
     state: restarted
     enabled: true
     daemon-reload: true
+
+- name: Restart slurmrestd
+  ansible.builtin.systemd:
+    name: slurmrestd
+    state: restarted
+    enabled: true
+    daemon-reload: true
+  when: slurm_include_slurmrestd

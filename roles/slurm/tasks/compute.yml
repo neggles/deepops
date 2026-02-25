@@ -1,19 +1,17 @@
 ---
 - name: Install dependencies
-  ansible.builtin.apt:
-    name: "{{ item }}"
+  ansible.builtin.package:
+    name:
+      - numactl
     state: present
-  with_items:
-    - numactl
   when: ansible_distribution == 'Ubuntu'
 
 - name: Install dependencies
-  ansible.builtin.dnf:
-    name: "{{ item }}"
+  ansible.builtin.package:
+    name:
+      - numactl
+      - psmisc
     state: present
-  with_items:
-    - psmisc
-    - numactl
   when: ansible_os_family == "RedHat"
 
 - name: Add cgroups to grub options
@@ -25,26 +23,26 @@
 
 - name: Update grub
   when: update_grub.changed and ansible_os_family == "Debian"
-
   block:
     - name: Update grub
       ansible.builtin.command: update-grub
       register: update_grub_cmd
       changed_when: update_grub_cmd.rc == 0
-#    - name: reboot after updating grub config
-#      reboot:
-#        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+    # - name: reboot after updating grub config
+    #   reboot:
+    #     reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+
 - name: Update grub
   when: update_grub.changed and ansible_os_family == "RedHat"
-
   block:
     - name: Update grub
       ansible.builtin.command: grub2-mkconfig -o /boot/grub2/grub.cfg
       register: grub2_mkconfig_cmd
       changed_when: grub2_mkconfig_cmd.rc == 0
-    - name: Reboot after updating grub config
-      ansible.builtin.reboot:
-        reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+    # - name: Reboot after updating grub config
+    #   ansible.builtin.reboot:
+    #     reboot_timeout: "{{ slurm_node_reboot_timeout }}"
+
 - name: Create sysconfig dir
   ansible.builtin.file:
     path: "{{ slurm_sysconf_dir }}"
