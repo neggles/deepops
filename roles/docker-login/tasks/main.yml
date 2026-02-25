@@ -1,23 +1,22 @@
 ---
-- name: ensure python prereqs are installed
-  package:
-    name: "{{ item }}"
+- name: Ensure python prereqs are installed
+  ansible.builtin.package:
+    name:
+      - "python3-setuptools"
+      - "python3-pip"
     state: present
-  with_items:
-  - "python3-setuptools"
-  - "python3-pip"
 
-- name: ensure docker pip package is installed
-  pip:
+- name: Ensure docker pip package is installed
+  ansible.builtin.pip:
     name: "docker"
     state: present
 
-- name: log into docker registry
-  docker_login:
+- name: Log into docker registry
+  community.docker.docker_login:
     state: "{{ docker_login_state }}"
     registry: "{{ item.registry }}"
     username: "{{ item.username }}"
     password: "{{ item.password }}"
-    reauthorize: "{{ docker_login_reauth }}" 
-  with_items: "{{ docker_login_registries }}"
+    reauthorize: "{{ docker_login_reauth }}"
+  loop: "{{ docker_login_registries }}"
   no_log: "{{ docker_login_disable_log_password }}"
