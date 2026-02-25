@@ -8,12 +8,12 @@
   "prettier.tabWidth": 4,
   "prettier.printWidth": 110,
 
+  "git.autoRepositoryDetection": "subFolders",
   "git.repositoryScanMaxDepth": 1,
+  "git.repositoryScanIgnoredFolders": ["submodules/*"],
   "githubRepositories.autoFetch.enabled": false,
 
   "files.associations": {
-    "*.yaml": "yaml",
-    "*.yml": "ansible",
     "*.log": "log",
     "${workspaceFolder}/config/**/*.{yml,yaml}": "ansible",
     "${workspaceFolder}/config.example/**/*.{yml,yaml}": "ansible",
@@ -23,7 +23,9 @@
     "**/group_vars/**/*.{yml,yaml}": "ansible",
     "**/host_vars/**/*.{yml,yaml}": "ansible",
     "**/vars/**/*.{yml,yaml}": "ansible",
-    "**/meta/**/*.{yml,yaml}": "ansible"
+    "**/meta/**/*.{yml,yaml}": "ansible",
+    "*.{yml,yaml}.j2": "jinja-yaml",
+    "*.service.j2": "jinja-properties"
   },
   "files.exclude": {
     "**/.git": true,
@@ -42,8 +44,7 @@
     "**/*.code-search": true,
     "**/.ruff_cache": true,
     "**/.venv": true,
-    "**/venv": true,
-    "config.example": true
+    "**/venv": true
   },
 
   "[python]": {
