@@ -11,23 +11,15 @@
     slurm_user_gid: "{{ cmd_slurm_group_id.stdout | int }}"
   when: cmd_slurm_group_id is defined
 
-- name: Create slurm-exporter config dir
+- name: Create slurm-exporter and prometheus config dirs
   ansible.builtin.file:
-    path: "{{ slurm_exporter_config_dir }}"
+    path: "{{ item }}"
     state: directory
     mode: "0755"
-
-- name: Create prometheus config dir
-  ansible.builtin.file:
-    path: "{{ prometheus_config_dir }}"
-    state: directory
-    mode: "0755"
-
-- name: Create prometheus endpoint config dir
-  ansible.builtin.file:
-    path: "{{ prometheus_cfg_endpoint_dir }}"
-    state: directory
-    mode: "0755"
+  loop:
+    - "{{ slurm_exporter_config_dir }}"
+    - "{{ prometheus_config_dir }}"
+    - "{{ prometheus_cfg_endpoint_dir }}"
 
 - name: Install prometheus endpoint config file
   ansible.builtin.template:
@@ -37,19 +29,15 @@
     group: root
     mode: 0644
 
-- name: Create grafana data dir
+- name: Create grafana data and dashboard dirs
   ansible.builtin.file:
-    path: "{{ grafana_data_dir }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ grafana_user_id }}"
     mode: "0755"
-
-- name: Create grafana dashboard dir
-  ansible.builtin.file:
-    path: "{{ grafana_cfg_dashboard_path }}"
-    state: directory
-    owner: "{{ grafana_user_id }}"
-    mode: "0755"
+  loop:
+    - "{{ grafana_data_dir }}"
+    - "{{ grafana_cfg_dashboard_path }}"
 
 - name: Copy grafana dashboards
   ansible.builtin.copy:
@@ -57,7 +45,7 @@
     dest: "{{ grafana_cfg_dashboard_path }}"
     owner: "{{ grafana_user_id }}"
     mode: "0644"
-  with_items:
+  loop:
     - slurm-dashboard.json
   notify: Restart grafana
 
@@ -71,16 +59,18 @@
 
 - name: Install docker-compose file
   ansible.builtin.template:
-    src: templates/docker-compose.yml.j2
+    src: "{{ slurm_exporter_compose_template }}"
     dest: "{{ slurm_exporter_config_dir }}/docker-compose.yml"
     owner: root
     group: root
     mode: 0644
 
 - name: Run docker compose build
-  ansible.builtin.command:
-    cmd: docker compose -f "{{ slurm_exporter_config_dir }}/docker-compose.yml" build
-    chdir: "{{ slurm_exporter_config_dir }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ slurm_exporter_config_dir }}"
+    build: yes
+    pull: yes
+    state: present
 
 - name: Install systemd unit file
   ansible.builtin.template:

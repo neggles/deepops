@@ -7,6 +7,7 @@ slurm_exporter_port: 8080
 slurm_exporter_log_level: "info"
 slurm_exporter_svc_name: "docker.slurm-exporter.service"
 slurm_exporter_state: started
+slurm_exporter_compose_template: "templates/docker-compose.yml.j2"
 
 slurm_install_prefix: /usr/local
 
