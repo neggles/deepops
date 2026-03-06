@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Configure software
+  hosts: all
   become: true
   tasks:
     - name: Remove old/undesirable packages

@@ -2,9 +2,10 @@
 - name: Install docker
   import_playbook: ../container/docker.yml
 
-- hosts: "{{ hostlist | default('all') }}"
+- name: Configure Prometheus Node Exporter
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   tasks:
-    - name: configure node exporter
+    - name: Configure Prometheus Node Exporter
       include_role:
         name: prometheus-node-exporter

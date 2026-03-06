@@ -11,7 +11,7 @@
         create: true
       when: ansible_distribution == "Ubuntu"
     - name: manage /etc/rc.d/rc.local permissions on RHEL/CentOS
-      file:
+      ansible.builtin.file:
         path: /etc/rc.d/rc.local
         mode: "0755"
       when: ansible_os_family == "RedHat"

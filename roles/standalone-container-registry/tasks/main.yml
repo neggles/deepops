@@ -1,6 +1,6 @@
 ---
 - name: create local directory for configuration
-  file:
+  ansible.builtin.file:
     path: "{{ standalone_container_registry_config_dir }}"
     state: directory
     owner: "root"
@@ -8,7 +8,7 @@
     mode: "0700"
 
 - name: add config file
-  template:
+  ansible.builtin.template:
     src: "{{ standalone_container_registry_config_template }}"
     dest: "{{ standalone_container_registry_config_dir }}/config.yml"
     owner: "root"
@@ -22,7 +22,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Enable EPEL repo
-  package:
+  ansible.builtin.package:
     name:
       - "{{ epel_package }}"
     state: present
@@ -32,14 +32,14 @@
   when: (ansible_python.version.major==2) and (ansible_python.version.minor==7)
   block:
     - name: install python-docker
-      package:
+      ansible.builtin.package:
         name: python-docker
 
 - name: Ensure Python 3 dependencies are installed via pip
   when: ansible_python.version.major==3
   block:
     - name: install pip
-      package:
+      ansible.builtin.package:
         name: python3-pip
     - name: install docker
       pip:

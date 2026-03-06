@@ -3,7 +3,7 @@
   hosts: all
   become: true
   roles:
-    - name: facts
+    - role: facts
 
 - name: Set root SSH key to allow SSH/ansible when no slurm job running for ansible user
   hosts: slurm-node
@@ -54,7 +54,7 @@
   hosts: slurm-cluster
   become: true
   roles:
-    - name: slurm
+    - role: slurm
       vars:
         user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
         slurm_workflow_build: false

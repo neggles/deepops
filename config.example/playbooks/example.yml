@@ -10,10 +10,11 @@
 # documentation:
 #   https://docs.ansible.com/ansible/latest/user_guide/playbooks.html
 
-- hosts: kube-node
+- name: Install cowsay on Kubernetes nodes
+  hosts: kube-node
   become: true
   tasks:
     - name: install cowsay
-      package:
+      ansible.builtin.package:
         name: cowsay
         state: present

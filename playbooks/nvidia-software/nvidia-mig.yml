@@ -19,7 +19,7 @@
         name: nvidia-mig-manager
       when:
         - has_mig.rc == 0
-    
+
     # TODO: Consider storing a custom copy of the hooks.yaml configuration alongside the config.yaml
     - name: copy cluster-wide mig config file
       copy:
@@ -28,7 +28,7 @@
       when: has_mig.rc == 0
 
     - name: Apply MIG configuration
-      command: nvidia-mig-parted apply -f {{ mig_manager_config }} -c {{ mig_manager_profile }} -k {{ mig_manager_hooks }}
+      ansible.builtin.command: nvidia-mig-parted apply -f {{ mig_manager_config }} -c {{ mig_manager_profile }} -k {{ mig_manager_hooks }}
       when: has_mig.rc == 0
 
     # Reboot nodes if necessary and poll for them to come up
@@ -40,8 +40,7 @@
         - reboot_required is defined
         - reboot_required | default(false)
     - name: Wait for server to reboot (if required)
-      wait_for_connection:
-        delay=15
+      wait_for_connection: delay=15
         timeout={{ reboot_timeout }}
       when:
         - reboot_required is defined
@@ -49,5 +48,5 @@
         - has_mig.rc == 0
 
     - name: Assert MIG configuration was applied
-      command: nvidia-mig-parted assert -f {{ mig_manager_config }} -c {{ mig_manager_profile }}
+      ansible.builtin.command: nvidia-mig-parted assert -f {{ mig_manager_config }} -c {{ mig_manager_profile }}
       when: has_mig.rc == 0

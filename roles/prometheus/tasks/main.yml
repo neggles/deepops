@@ -1,24 +1,24 @@
 ---
 - name: create config dir
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_config_dir }}"
     state: directory
     mode: "0755"
 
 - name: create endpoints config dir
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_cfg_endpoint_dir }}"
     state: directory
     mode: "0755"
 
 - name: create alarm rules dir
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_config_dir }}/rules"
     state: directory
     mode: "0755"
 
 - name: install alarm rules file
-  template:
+  ansible.builtin.template:
     src: "{{ prometheus_alert_rules_src }}"
     dest: "{{ prometheus_config_dir }}/rules/alert_rules.yml"
     owner: root
@@ -26,51 +26,51 @@
     mode: "0644"
 
 - name: install config file
-  template:
+  ansible.builtin.template:
     src: "{{ prometheus_config_src }}"
     dest: "{{ prometheus_config_dir }}/prometheus.yml"
     owner: root
     group: root
     mode: "0644"
-  notify: restart prometheus
+  notify: Restart prometheus
 
 - name: Ensure Python 2 dependencies are installed via OS packages
   when: (ansible_python.version.major==2) and (ansible_python.version.minor==7)
   block:
     - name: install python-docker
-      package:
+      ansible.builtin.package:
         name: python-docker
 
 - name: Ensure Python 3 dependencies are installed via pip
   when: ansible_python.version.major==3
   block:
     - name: install pip
-      package:
+      ansible.builtin.package:
         name: python3-pip
     - name: install docker
-      pip:
+      ansible.builtin.pip:
         name:
           - docker
           - requests<2.32.0
 
 - name: create a persistent docker volume for metrics
-  docker_volume:
+  community.docker.docker_volume:
     name: "{{ prometheus_docker_volume_name }}"
     state: "present"
 
 - name: install systemd unit file
-  template:
+  ansible.builtin.template:
     src: templates/docker.prometheus.service.j2
     dest: "/etc/systemd/system/{{ prometheus_svc_name }}"
     owner: root
     group: root
     mode: "0644"
-  notify: restart prometheus
+  notify: Restart prometheus
 
 - name: configure service
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ prometheus_svc_name }}"
     state: "{{ prometheus_state }}"
     enabled: "{{ prometheus_enabled }}"
     daemon_reload: true
-  notify: restart prometheus
+  notify: Restart prometheus

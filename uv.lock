@@ -609,6 +609,7 @@ dependencies = [
     { name = "requests" },
     { name = "ruamel-yaml" },
     { name = "selinux" },
+    { name = "yamllint" },
 ]
 
 [package.dev-dependencies]
@@ -633,6 +634,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.31.0,<3.0.0" },
     { name = "ruamel-yaml" },
     { name = "selinux" },
+    { name = "yamllint", specifier = ">=1.38.0" },
 ]
 
 [package.metadata.requires-dev]

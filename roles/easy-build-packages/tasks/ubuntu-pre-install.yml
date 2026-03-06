@@ -4,10 +4,9 @@
 ---
 - name: "install depending software"
   become: true
-  apt:
+  ansible.builtin.apt:
     name:
       - libssl-dev
       - build-essential
       - libsysfs-dev
       - libibverbs-dev
-

@@ -1,54 +1,54 @@
 ---
-- name: create config dir
-  file:
+- name: Create config dir
+  ansible.builtin.file:
     path: "{{ alertmanager_config_dir }}"
     state: directory
     mode: "0755"
 
-- name: install config file
-  template:
+- name: Install config file
+  ansible.builtin.template:
     src: "{{ alertmanager_config_src }}"
     dest: "{{ alertmanager_config_dir }}/alertmanager.yml"
     owner: root
     group: root
     mode: "0644"
-  notify: restart alertmanager
+  notify: Restart alertmanager
 
 - name: Ensure Python 2 dependencies are installed via OS packages
   when: (ansible_python.version.major==2) and (ansible_python.version.minor==7)
   block:
-    - name: install python-docker
-      package:
+    - name: Install python-docker
+      ansible.builtin.package:
         name: python-docker
 
 - name: Ensure Python 3 dependencies are installed via pip
   when: ansible_python.version.major==3
   block:
-    - name: install pip
-      package:
+    - name: Install pip
+      ansible.builtin.package:
         name: python3-pip
-    - name: install docker
-      pip:
+    - name: Install docker
+      ansible.builtin.pip:
         name: docker
 
-- name: create a persistent docker volume for metrics
-  docker_volume:
+- name: Create a persistent docker volume for metrics
+  community.docker.docker_volume:
     name: "{{ alertmanager_docker_volume_name }}"
     state: "present"
 
-- name: install systemd unit file
-  template:
+- name: Install systemd unit file
+  ansible.builtin.template:
     src: templates/docker.alertmanager.service.j2
     dest: "/etc/systemd/system/{{ alertmanager_svc_name }}"
     owner: root
     group: root
     mode: "0644"
-  notify: restart alertmanager
+  notify: Restart alertmanager
 
-- name: configure service
-  systemd:
+- name: Configure service
+  ansible.builtin.systemd:
     name: "{{ alertmanager_svc_name }}"
     state: "{{ alertmanager_state }}"
     enabled: "{{ alertmanager_enabled }}"
     daemon_reload: true
-  notify: restart alertmanager
+  notify: Restart alertmanager

@@ -6,7 +6,7 @@
 # This bit seems a bit buggy depending on the OS
 - name: Install cuda toolkit
   become: true
-  package:
+  ansible.builtin.package:
     name: nvidia-cuda-toolkit
     state: present
   when: gpu_test_install_toolkit

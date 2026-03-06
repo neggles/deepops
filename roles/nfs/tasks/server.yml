@@ -1,6 +1,6 @@
 ---
 - name: install ubuntu packages
-  apt:
+  ansible.builtin.apt:
     name: nfs-kernel-server
     state: present
   when: ansible_os_family == "Debian"
@@ -8,40 +8,40 @@
     - nfs
 
 - name: ensure export path exists
-  file:
+  ansible.builtin.file:
     path: "{{ item.path }}"
     state: "directory"
     mode: "0755"
   with_items: "{{ nfs_exports }}"
-  notify: restart nfs
+  notify: Restart nfs
   tags:
     - nfs
 
 - name: ensure statd is enabled
-  service:
+  ansible.builtin.service:
     name: rpc-statd
     enabled: true
     state: started
   notify:
-    - restart rpcbind
-    - restart nfs
+    - Restart rpcbind
+    - Restart nfs
   tags:
     - nfs
 
 - name: configure exports
-  template:
+  ansible.builtin.template:
     src: exports.j2
     dest: /etc/exports
     owner: root
     group: root
     mode: "0644"
-  notify: restart nfs
+  notify: Restart nfs
   register: nfs_exports_copy
   tags:
     - nfs
 
 - name: ensure nfs server is running
-  service:
+  ansible.builtin.service:
     name: "{{ nfs_server_daemon }}"
     state: started
     enabled: true

@@ -17,7 +17,7 @@
     - roce_host
 
 - name: Create the file, if it does not present
-  file:
+  ansible.builtin.file:
     path: /etc/rc.local
     state: touch
     mode: 0755
@@ -30,9 +30,9 @@
 - name: Add first line to /etc/rc.local
   lineinfile:
     path: /etc/rc.local
-    regexp: '^#!/bin/sh -e'
+    regexp: "^#!/bin/sh -e"
     state: present
-    line: '#!/bin/sh -e'
+    line: "#!/bin/sh -e"
     insertbefore: BOF
   when: ofed_present.stat.exists
   tags:
@@ -41,9 +41,9 @@
 - name: Add last line to /etc/rc.local
   lineinfile:
     path: /etc/rc.local
-    regexp: '^exit 0'
+    regexp: "^exit 0"
     state: present
-    line: 'exit 0'
+    line: "exit 0"
     insertafter: EOF
   when: ofed_present.stat.exists
   tags:
@@ -54,7 +54,6 @@
   when: ofed_present.stat.exists
   tags:
     - roce_host
-
 
 #Install Python modules
 
@@ -67,4 +66,3 @@
     update_cache: true
   tags:
     - roce_host
-

@@ -2,10 +2,11 @@
 - name: Install docker
   import_playbook: docker.yml
 
-- hosts: "{{ hostlist | default('all') }}"
+- name: Install nginx docker registry cache server
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   tasks:
-    - name: deploy nginx container caching proxy
+    - name: Deploy nginx container caching proxy
       include_role:
         name: "nginx-docker-registry-cache"
         tasks_from: server

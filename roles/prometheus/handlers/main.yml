@@ -1,5 +1,5 @@
 ---
-- name: restart prometheus
+- name: Restart prometheus
   service:
     name: "{{ prometheus_svc_name }}"
     state: restarted

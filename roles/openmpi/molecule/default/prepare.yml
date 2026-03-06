@@ -3,6 +3,6 @@
   become: true
   tasks:
     - name: ensure apt cache is updated
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       when: ansible_distribution == "Ubuntu"

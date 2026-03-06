@@ -1,18 +1,18 @@
 ---
 - name: create config dir
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_config_dir }}"
     state: directory
     mode: "0755"
 
 - name: create endpoints config dir
-  file:
+  ansible.builtin.file:
     path: "{{ prometheus_cfg_endpoint_dir }}"
     state: directory
     mode: "0755"
 
 - name: install config file
-  template:
+  ansible.builtin.template:
     src: "{{ node_exporter_conf_template }}"
     dest: "{{ prometheus_cfg_endpoint_dir }}/node-exporter.yml"
     owner: root
@@ -20,7 +20,7 @@
     mode: "0644"
 
 - name: install systemd unit file
-  template:
+  ansible.builtin.template:
     src: templates/docker.node-exporter.service.j2
     dest: "/etc/systemd/system/{{ node_exporter_svc_name }}"
     owner: root
@@ -28,9 +28,9 @@
     mode: "0644"
 
 - name: configure service
-  systemd:
+  ansible.builtin.systemd:
     name: "{{ node_exporter_svc_name }}"
     state: "{{ node_exporter_state }}"
     enabled: "{{ node_exporter_enabled }}"
     daemon_reload: true
-  notify: restart node-exporter
+  notify: Restart node-exporter

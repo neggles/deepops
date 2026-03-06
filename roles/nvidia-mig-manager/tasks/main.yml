@@ -11,21 +11,21 @@
   changed_when: false
 
 - name: check for NVIDIA MIG parted
-  shell: which nvidia-mig-parted  # noqa command-instead-of-shell
+  shell: which nvidia-mig-parted # noqa command-instead-of-shell
   register: has_mig_parted
   failed_when: false
   changed_when: false
 
 # Install NVIDIA MIG Manager Systemd service
 - name: Install MIG Manager (apt)
-  apt:
+  ansible.builtin.apt:
     deb: "{{ mig_manager_url_deb }}"
   when:
     - has_mig.rc == 0
     - has_mig_parted.rc != 0
     - ansible_os_family == "Debian"
 - name: Install MIG Manager (yum)
-  yum:
+  ansible.builtin.yum:
     name: "{{ mig_manager_url_rpm }}"
     state: present
   when:

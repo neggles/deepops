@@ -1,5 +1,6 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Configure Rsyslog client
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
     - rsyslog_client

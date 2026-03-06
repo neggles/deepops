@@ -19,7 +19,7 @@
   when: sm_install_default
 
 - name: "check the sm_files_path is reachable"
-  stat:
+  ansible.builtin.stat:
     path: "{{ sm_files_path }}"
   register: eb_path
 

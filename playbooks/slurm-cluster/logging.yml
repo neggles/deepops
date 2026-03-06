@@ -5,7 +5,7 @@
     elasticsearch_network_host: 0.0.0.0
   pre_tasks:
     - name: debian - ensure apt cache updated
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       when: ansible_os_family == "Debian"
   roles:
@@ -21,7 +21,7 @@
     filebeat_port: "5000"
   tasks:
     - name: configure logstash to accept logs from filebeat
-      template:
+      ansible.builtin.template:
         src: "filebeat.conf"
         dest: "/etc/logstash/conf.d/filebeat.conf"
         owner: "root"
@@ -52,7 +52,7 @@
       notify:
         - restart-logstash
       when: logstash_jndi.changed
-    - name: manually stop logstash as restart is not consistently working later
+    - name: manually stop logstash as Restart is not consistently working later
       service:
         name: logstash
         state: stopped

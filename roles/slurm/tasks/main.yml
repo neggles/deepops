@@ -1,4 +1,12 @@
 ---
+- name: Ensure shared download dir exists
+  ansible.builtin.file:
+    name: "{{ shared_download_dir }}"
+    state: directory
+    mode: "0777"
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_gid }}"
+
 - name: Install CUDA when we require NVML support for autodetection
   ansible.builtin.include_role:
     name: nvidia_cuda

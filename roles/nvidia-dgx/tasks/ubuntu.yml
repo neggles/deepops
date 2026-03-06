@@ -21,7 +21,7 @@
   when: ansible_distribution_version == "20.04"
 
 - name: install dmidecode
-  apt:
+  ansible.builtin.apt:
     name: dmidecode
     state: present
     update_cache: true
@@ -93,7 +93,7 @@
     state: absent
 
 - name: remove packages when using Bright Computing source image
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: absent
     purge: true
@@ -121,7 +121,7 @@
     - rdma_cm
 
 - name: add DGX repo keys for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     deb: "{{ nvidia_dgx_ubuntu_gpgkey }}"
   when: ansible_distribution_version == "18.04"
 
@@ -132,39 +132,39 @@
   when: ansible_distribution_version == "20.04"
 
 - name: add DGX repo for DGX OS 4
-  template:
+  ansible.builtin.template:
     src: dgx.list.j2
     dest: /etc/apt/sources.list.d/dgx.list
     mode: "0644"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGX repo for DGX OS 5
-  template:
+  ansible.builtin.template:
     src: dgxos5.list.j2
     dest: /etc/apt/sources.list.d/dgx-temp.list
     mode: "0644"
   when: ansible_distribution_version == "20.04"
 
 - name: update apt cache
-  apt:
+  ansible.builtin.apt:
     update_cache: true
 
 - name: add DGX cuda 10.1 repo for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: dgx-bionic-r418+cuda10.1-repo
     update_cache: true
     dpkg_options: "force-confdef,force-confold"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGX cuda 11.0 repo for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: dgx-bionic-r450+cuda11.0-repo
     update_cache: true
     dpkg_options: "force-confdef,force-confold"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGXA100 repo for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: dgx-bionic-4.99-repo
     update_cache: true
     dpkg_options: "force-confdef,force-confold"
@@ -173,7 +173,7 @@
     - ansible_product_name is search("DGXA100")
 
 - name: install prerequisites for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -183,7 +183,7 @@
   when: ansible_distribution_version == "20.04"
 
 - name: install DGX repo package for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     update_cache: true
     dpkg_options: "force-confdef,force-confold"
@@ -192,13 +192,13 @@
   when: ansible_distribution_version == "20.04"
 
 - name: remove temporary repo package for DGX OS 5
-  file:
+  ansible.builtin.file:
     path: /etc/apt/sources.list.d/dgx-temp.list
     state: absent
   when: ansible_distribution_version == "20.04"
 
 - name: install more packages for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     update_cache: true
     dpkg_options: "force-confdef,force-confold"
@@ -207,7 +207,7 @@
   when: ansible_distribution_version == "20.04"
 
 - name: install DGX-1 packages for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -217,10 +217,10 @@
     - ansible_distribution_version == "18.04"
     - ansible_product_name is search("DGX-1")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install DGX-1 packages for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -231,10 +231,10 @@
     - ansible_distribution_version == "20.04"
     - ansible_product_name is search("DGX-1")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install DGX-2 packages for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -244,10 +244,10 @@
     - ansible_distribution_version == "18.04"
     - ansible_product_name is search("DGX-2")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install DGX-2 packages for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -258,10 +258,10 @@
     - ansible_distribution_version == "20.04"
     - ansible_product_name is search("DGX-2")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install DGXA100 packages for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -271,10 +271,10 @@
     - ansible_distribution_version == "18.04"
     - ansible_product_name is search("DGXA100")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install DGXA100 packages for DGX OS 5
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -285,10 +285,10 @@
     - ansible_distribution_version == "20.04"
     - ansible_product_name is search("DGXA100")
   notify:
-    - restart docker
+    - Restart docker
 
 - name: install extra DGX packages for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -297,14 +297,14 @@
   when: ansible_distribution_version == "18.04"
 
 - name: touch grub ipmisol.cfg for DGX OS 4
-  file:
+  ansible.builtin.file:
     path: /etc/default/grub.d/ipmisol.cfg
     state: touch
     mode: u=rw,g=r,o=r
   when: ansible_distribution_version == "18.04"
 
 - name: add DGX IPMI SOL package for DGX OS 4
-  apt:
+  ansible.builtin.apt:
     name: dgx-ipmisol
     state: present
   when:
@@ -348,7 +348,7 @@
   command: /usr/sbin/update-rc.d nv_peer_mem defaults
 
 - name: configure default ubuntu repos for DGX OS 4
-  template:
+  ansible.builtin.template:
     src: sources.list.j2
     dest: /etc/apt/sources.list
     mode: "0644"
@@ -366,18 +366,18 @@
 
 # setup_data_drive "/dev/sdb1" "dgx1cache"
 - name: create raid directory for raid cache mount point
-  file:
+  ansible.builtin.file:
     path: "{{ cachefilesd_cache_dir }}"
     state: directory
     mode: "{{ cachefilesd_cache_dir_mode }}"
 
 - name: configure cachefilesd
-  template:
+  ansible.builtin.template:
     src: cachefilesd.conf.j2
     dest: /etc/cachefilesd.conf
 
 # Misc stuff
-- name: restart docker service just in case...
+- name: Restart docker service just in case...
   systemd:
     name: docker
     state: restarted

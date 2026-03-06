@@ -1,6 +1,6 @@
 ---
 - name: Check for DGX packages
-  stat:
+  ansible.builtin.stat:
     path: /etc/dgx-release
   register: is_dgx
 

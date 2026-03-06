@@ -17,11 +17,11 @@
   changed_when: false
 
 - name: install Ubuntu packages
-  apt: name=nis,rpcbind state=present
+  ansible.builtin.apt: name=nis,rpcbind state=present
   when: ansible_os_family == "Debian"
 
 - name: install CentOS NIS packages
-  yum: name=ypbind state=present
+  ansible.builtin.yum: name=ypbind state=present
   when: ansible_os_family == "RedHat"
 
 - name: ensure rpcbind is running
@@ -32,10 +32,10 @@
     dest: /etc/yp.conf
     regexp: "^domain"
     line: "domain {{ nis_domain }} server {{ nis_server }}"
-  notify: "restart nis"
+  notify: "Restart nis"
 
 - name: create default domain name file
-  file:
+  ansible.builtin.file:
     path: /etc/defaultdomain
     owner: root
     group: root
@@ -48,7 +48,7 @@
     dest: /etc/defaultdomain
     regexp: "^"
     line: "{{ nis_domain }}"
-  notify: "restart nis"
+  notify: "Restart nis"
 
 - name: configure nsswitch.conf
   lineinfile:
@@ -60,7 +60,7 @@
     - {regexp: "^group", line: "group: files nis"}
     - {regexp: "^shadow", line: "shadow: files nis"}
     - {regexp: "^automount", line: "automount: files nis"}
-  notify: "restart nis"
+  notify: "Restart nis"
 
 - name: make sure rpcbind is running
   service: name=rpcbind state=started enabled=yes
@@ -78,7 +78,7 @@
     - molecule-notest
 
 - name: remove file to prevent starting services at install time
-  file:
+  ansible.builtin.file:
     path: /usr/sbin/policy-rc.d
     state: absent
   changed_when: false

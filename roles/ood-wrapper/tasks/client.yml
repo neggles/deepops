@@ -1,19 +1,19 @@
 ---
 - name: install dependencies
-  package:
+  ansible.builtin.package:
     name: "{{ ood_client_sw_deps }}"
     state: present
   when: ood_client_sw_deps is defined
 
 - name: install turbovnc
-  apt:
+  ansible.builtin.apt:
     deb: "{{ ood_url_turbovnc_pkg }}"
   tags:
     - vnc
   when: ansible_distribution == 'Ubuntu'
 
 - name: install turbovnc
-  yum:
+  ansible.builtin.yum:
     name: "{{ ood_url_turbovnc_pkg }}"
     state: present
   tags:
@@ -21,7 +21,7 @@
   when: ansible_os_family == 'RedHat'
 
 - name: install codeserver
-  unarchive:
+  ansible.builtin.unarchive:
     src: "{{ ood_url_codeserver_src }}"
     remote_src: true
     dest: /usr/local/bin

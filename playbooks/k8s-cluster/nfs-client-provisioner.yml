@@ -13,7 +13,7 @@
   become: true
   tasks:
     - name: Make sure NFS directory exists and is globally writable
-      file:
+      ansible.builtin.file:
         path: "{{ k8s_nfs_export_path }}"
         state: directory
         mode: "u=rwx,g=rwx,o=rwx"

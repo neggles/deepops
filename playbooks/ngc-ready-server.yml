@@ -21,35 +21,40 @@
   import_playbook: nvidia-software/nvidia-dcgm.yml
   when: install_dcgm|default(false)
 
-- hosts: all
+- name: Test docker and NVIDIA setup
+  hosts: all
   become: true
   tasks:
     - name: install docker python3 module
-      apt:
+      ansible.builtin.apt:
         name: python3-docker
         state: present
         update_cache: true
       when: ansible_distribution == "Ubuntu"
+
     - name: Enable EPEL repo
-      package:
+      ansible.builtin.package:
         name:
           - "{{ epel_package }}"
         state: present
       when: ansible_os_family == 'RedHat'
+
     - name: Install package dependencies
-      package:
+      ansible.builtin.package:
         name:
           - python3-pip
         state: present
       when: ansible_os_family == "RedHat"
+
     - name: Install python3 dependencies
-      pip:
+      ansible.builtin.pip:
         name:
           - docker
         state: present
       when: ansible_os_family == "RedHat"
+
     - name: pull CUDA container
-      docker_container:
+      community.docker.docker_container:
         name: gpu-test-pull
         image: "{{ ngc_ready_cuda_container }}"
         auto_remove: true
@@ -57,8 +62,9 @@
       tags:
         - test
         - never
+
     - name: test CUDA container
-      docker_container:
+      community.docker.docker_container:
         name: gpu-test
         image: "{{ ngc_ready_cuda_container }}"
         detach: false
@@ -67,21 +73,24 @@
       tags:
         - test
         - never
+
     - name: functional test output
-      debug:
+      ansible.builtin.debug:
         var: cuda.ansible_facts.docker_container.Output
       tags:
         - test
         - never
+
     - name: remove CUDA container
-      docker_container:
+      community.docker.docker_container:
         name: gpu-test
         state: absent
       tags:
         - test
         - never
+
     - name: pull pytorch container
-      docker_container:
+      community.docker.docker_container:
         name: pytorch-pull
         image: "{{ ngc_ready_pytorch }}"
         auto_remove: true
@@ -89,8 +98,9 @@
       tags:
         - test
         - never
+
     - name: test pytorch
-      docker_container:
+      community.docker.docker_container:
         name: pytorch
         image: "{{ ngc_ready_pytorch }}"
         working_dir: /opt/pytorch/examples/upstream/mnist
@@ -101,21 +111,24 @@
       tags:
         - test
         - never
+
     - name: pytorch test output
-      debug:
+      ansible.builtin.debug:
         var: pytorch.ansible_facts.docker_container.Output
       tags:
         - test
         - never
+
     - name: remove pytorch container
-      docker_container:
+      community.docker.docker_container:
         name: pytorch-test
         state: absent
       tags:
         - test
         - never
+
     - name: pull tensorflow container
-      docker_container:
+      community.docker.docker_container:
         name: tensorflow-pull
         image: "{{ ngc_ready_tensorflow }}"
         auto_remove: true
@@ -123,8 +136,9 @@
       tags:
         - test
         - never
+
     - name: test tensorflow
-      docker_container:
+      community.docker.docker_container:
         name: tensorflow
         image: "{{ ngc_ready_tensorflow }}"
         working_dir: /opt/tensorflow/tensorflow/examples/tutorials/mnist
@@ -135,14 +149,16 @@
       tags:
         - test
         - never
+
     - name: tensorflow test output
-      debug:
+      ansible.builtin.debug:
         var: tensorflow.ansible_facts.docker_container.Output
       tags:
         - test
         - never
+
     - name: remove tensorflow container
-      docker_container:
+      community.docker.docker_container:
         name: tensorflow-test
         state: absent
       tags:

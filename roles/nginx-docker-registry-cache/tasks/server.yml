@@ -3,21 +3,21 @@
   when: (ansible_python.version.major==2) and (ansible_python.version.minor==7)
   block:
     - name: install python-docker
-      package:
+      ansible.builtin.package:
         name: python-docker
 
 - name: Ensure Python 3 dependencies are installed via pip
   when: ansible_python.version.major==3
   block:
     - name: install pip
-      package:
+      ansible.builtin.package:
         name: python3-pip
     - name: install docker
-      pip:
+      ansible.builtin.pip:
         name: docker
 
 - name: Ensure data directories exist
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: "root"
     group: "root"
@@ -28,7 +28,7 @@
     - "{{ nginx_docker_cache_ca_path }}"
 
 - name: Add pre-defined CA key file
-  copy:
+  ansible.builtin.copy:
     src: "{{ nginx_docker_cache_ca.key }}"
     dest: "{{ nginx_docker_cache_ca_path }}/ca.key"
     owner: "root"
@@ -37,7 +37,7 @@
   when: nginx_docker_cache_ca is defined
 
 - name: Add pre-defined CA certificate
-  copy:
+  ansible.builtin.copy:
     src: "{{ nginx_docker_cache_ca.crt }}"
     dest: "{{ nginx_docker_cache_ca_path }}/ca.crt"
     owner: "root"
@@ -46,7 +46,7 @@
   when: nginx_docker_cache_ca is defined
 
 - name: Run caching proxy
-  docker_container:
+  ansible.builtin.docker_container:
     name: "{{ nginx_docker_cache_name }}"
     image: "{{ nginx_docker_cache_image }}"
     state: started

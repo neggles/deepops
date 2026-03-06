@@ -1,5 +1,6 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Configure NFS Server
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
     - {role: nfs, nfs_is_server: true}

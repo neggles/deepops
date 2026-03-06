@@ -13,7 +13,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: "rm previous tmp folders"
-  file:
+  ansible.builtin.file:
     path: "{{ eb_tmp_dir }}"
     state: absent
     force: true
@@ -29,7 +29,7 @@
   ignore_errors: true
 
 - name: "mkdir tmp folders"
-  file:
+  ansible.builtin.file:
     path: "{{ eb_tmp_dir }}"
     state: directory
     force: true
@@ -38,7 +38,7 @@
   when: not ebsw_exe.matched
 
 - name: "download bootstrap script"
-  get_url: url="{{ item.url }}" dest="{{ item.dest }}" mode='u=rwx,g=rwx,o=rx' force=yes
+  ansible.builtin.get_url: url="{{ item.url }}" dest="{{ item.dest }}" mode='u=rwx,g=rwx,o=rx' force=yes
   with_items:
     - url: "{{ eb_bootstrap_url }}"
       dest: "/tmp"
@@ -56,7 +56,7 @@
 
 - name: "get EasyBuild version"
   become: true
-  command: ls {{ eb_tmp_dir }}/software/EasyBuild/
+  ansible.builtin.command: ls {{ eb_tmp_dir }}/software/EasyBuild/
   args:
     executable: /bin/bash
   register: ebsw_version
@@ -74,7 +74,7 @@
 
 - name: ensure directory ownership is correct for software paths
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     owner: "{{ ansible_user }}"
     state: "directory"
@@ -87,20 +87,20 @@
     - "{{ sm_build_path }}"
 
 - name: "cp EasyBuild software"
-  command: cp -R "{{ eb_tmp_dir }}/software/EasyBuild" "{{ sm_software_path }}"
+  ansible.builtin.command: cp -R "{{ eb_tmp_dir }}/software/EasyBuild" "{{ sm_software_path }}"
   when: not ebsw_exe.matched
 
 - name: "cp EasyBuild module"
-  command: cp -R "{{ eb_tmp_dir }}/modules/all/EasyBuild" "{{ sm_module_path }}"
+  ansible.builtin.command: cp -R "{{ eb_tmp_dir }}/modules/all/EasyBuild" "{{ sm_module_path }}"
   when: not ebsw_exe.matched
 
 - name: "rm EasyBuild tmp directories"
-  file: path={{ eb_tmp_dir }} state=absent force=yes
+  ansible.builtin.file: path={{ eb_tmp_dir }} state=absent force=yes
   when: not ebsw_exe.matched
 
 - name: "configure sh profile"
   become: true
-  template:
+  ansible.builtin.template:
     src: templates/z01_eb.sh
     dest: /etc/profile.d
     owner: root
@@ -112,7 +112,7 @@
 
 - name: "configure csh profile"
   become: true
-  template:
+  ansible.builtin.template:
     src: templates/z01_eb.csh
     dest: /etc/profile.d
     owner: root

@@ -1,5 +1,6 @@
 ---
-- hosts: all
+- name: Install singularity
+  hosts: all
   become: true
   roles:
     - singularity_wrapper

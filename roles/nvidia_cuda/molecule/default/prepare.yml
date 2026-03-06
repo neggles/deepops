@@ -3,7 +3,7 @@
   become: true
   tasks:
     - name: ensure man directories exist in minimal ubuntu image
-      file:
+      ansible.builtin.file:
         path: "/usr/share/man/man1"
         owner: "root"
         group: "root"
@@ -12,7 +12,7 @@
       when: ansible_distribution == "Ubuntu"
 
     - name: Ensure dependencies are present for apt key management
-      apt:
+      ansible.builtin.apt:
         update_cache: true
         name: "gpg-agent"
         state: present

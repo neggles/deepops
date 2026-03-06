@@ -1,5 +1,5 @@
 ---
-- name: restart dcgm
+- name: Restart dcgm
   service:
     name: "{{ nvidia_dcgm_svc_name }}"
     state: restarted

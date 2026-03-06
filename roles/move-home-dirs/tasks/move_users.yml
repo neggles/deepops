@@ -3,7 +3,7 @@
 
 ---
 - name: create {{ move_home_dirs_new_root }}
-  file:
+  ansible.builtin.file:
     path: "{{ move_home_dirs_new_root }}"
     mode: "0755"
     state: directory
@@ -67,7 +67,7 @@
     state: absent
 
 - name: revoke sudo for temporary user
-  file:
+  ansible.builtin.file:
     path: "/etc/sudoers.d/{{ tmp_user }}"
     state: absent
 

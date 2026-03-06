@@ -6,7 +6,7 @@
 
 - name: RedHat | add epel repo
   become: true
-  yum:
+  ansible.builtin.yum:
     name:
       - "{{ epel_package }}"
     state: present
@@ -21,6 +21,6 @@
   environment: "{{ proxy_env if proxy_env is defined else {} }}"
 
 - name: RedHat | install package
-  package:
+  ansible.builtin.package:
     name: "{{ dcgm_pkg_name }}"
     state: "present"

@@ -24,7 +24,7 @@
   when: ansible_distribution == 'Ubuntu' and (ansible_distribution_major_version in ['18', '20'])
 
 - name: install /etc/resolv.conf
-  template:
+  ansible.builtin.template:
     src: resolv.conf.j2
     dest: /etc/resolv.conf
     owner: root

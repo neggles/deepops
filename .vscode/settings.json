@@ -74,6 +74,7 @@
   "ansible.python.interpreterPath": "${workspaceFolder}/.venv/bin/python",
   "ansible.validation.lint.arguments": "-c .ansible-lint",
   "ansible.lightspeed.enabled": false,
+  "ansible.validation.lint.autoFixOnSave": true,
 
   "[shellscript]": {
     // "editor.defaultFormatter": "foxundermoon.shell-format",

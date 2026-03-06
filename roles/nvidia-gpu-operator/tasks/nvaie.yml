@@ -9,7 +9,7 @@
   changed_when: false
 
 - name: create local directory for gpu operator configuration
-  file:
+  ansible.builtin.file:
     path: "{{ gpu_operator_grid_config_dir }}"
     state: directory
     owner: "root"
@@ -17,7 +17,7 @@
     mode: "0700"
 
 - name: add gridd.conf config file from template
-  template:
+  ansible.builtin.template:
     src: "gridd.conf"
     dest: "{{ gpu_operator_grid_config_dir }}/gridd.conf"
     owner: "root"
@@ -25,7 +25,7 @@
     mode: "0600"
 
 - name: add client_configuration_token.tok token file from template
-  template:
+  ansible.builtin.template:
     src: "client_configuration_token.tok"
     dest: "{{ gpu_operator_grid_config_dir }}/client_configuration_token.tok"
     owner: "root"

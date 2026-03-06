@@ -1,6 +1,6 @@
 ---
 - name: install virtualenv and setuptools
-  apt:
+  ansible.builtin.apt:
     name: "{{ item }}"
     state: present
   with_items:
@@ -10,7 +10,7 @@
   environment: "{{ proxy_env if proxy_env is defined else {} }}"
 
 - name: create location for deepops files
-  file:
+  ansible.builtin.file:
     path: "{{ deepops_dir }}"
     state: directory
     mode: "0755"
@@ -29,19 +29,19 @@
   when: ansible_os_family == "RedHat"
 
 - name: install EPEL for CentOS
-  yum:
+  ansible.builtin.yum:
     name: "{{ epel_package }}"
   when: ansible_os_family == "RedHat"
 
   # TODO: Verify that RHEL  does not require venv
 - name: install openshift python client for k8s_raw module
-  yum:
+  ansible.builtin.yum:
     name: python2-openshift
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "7"
   environment: "{{ proxy_env if proxy_env is defined else {} }}"
 
 - name: install openshift python client for k8s_raw module
-  yum:
+  ansible.builtin.yum:
     name: python3-openshift
   when: ansible_os_family == 'RedHat' and ansible_distribution_major_version == "8"
   environment: "{{ proxy_env if proxy_env is defined else {} }}"

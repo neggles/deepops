@@ -1,6 +1,6 @@
 ---
 - name: configure PAM
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "/etc/pam.d/systemd-user-slice"
     line: "session     required      pam_exec.so type=open_session /etc/security/limits.sh"
     mode: "0644"
@@ -9,7 +9,7 @@
     - linuxhost-adapter
 
 - name: configure script
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "/etc/security/limits.sh"
     block: |
       {{ ood_linuxhost_adapter_script }}
@@ -19,7 +19,7 @@
     - linuxhost-adapter
 
 - name: configure linuxhost-adapter
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "{{ ood_cluster_config_dir }}/linuxhost.yml"
     mode: "0644"
     block: |
@@ -30,7 +30,7 @@
     - linuxhost-adapter
 
 - name: create singularity image directory
-  file:
+  ansible.builtin.file:
     path: "{{ singularity_image_dir }}"
     mode: "0755"
     state: directory
@@ -38,8 +38,8 @@
     - linuxhost-adapter
 
 - name: pull singularity image
-  command: singularity pull --name ubuntu-18.04.simg docker://ubuntu:18.04
-  args:
+  ansible.builtin.command:
+    cmd: singularity pull --name ubuntu-18.04.simg docker://ubuntu:18.04
     chdir: "{{ singularity_image_dir }}"
     creates: "{{ singularity_image_dir }}/ubuntu-18.04.simg"
   environment:

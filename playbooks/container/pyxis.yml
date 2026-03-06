@@ -28,10 +28,10 @@
   hosts: slurm-node
   become: true
   roles:
-    - name: nvidia.enroot
+    - role: nvidia.enroot
 
 - name: Set up pyxis on all nodes
   hosts: slurm-cluster
   become: true
   roles:
-    - name: pyxis
+    - role: pyxis

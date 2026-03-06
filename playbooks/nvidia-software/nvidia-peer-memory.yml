@@ -1,5 +1,6 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Install NVIDIA Peer Memory
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
-  - nvidia-peer-memory
+    - nvidia-peer-memory

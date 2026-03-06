@@ -1,6 +1,6 @@
 ---
 - name: gather package facts
-  package_facts:
+  ansible.builtin.package_facts:
     manager: rpm
   tags:
     - nfs
@@ -30,15 +30,15 @@
     - ansible_os_family == "RedHat"
     - "'firewalld' in ansible_facts.packages"
 
-- name: restart firewalld if it was running
+- name: Restart firewalld if it was running
   ansible.builtin.systemd:
     state: restarted
     name: firewalld
   tags:
     - nfs
   notify:
-    - restart rpcbind
-    - restart nfs
+    - Restart rpcbind
+    - Restart nfs
   when:
     - ansible_os_family == "RedHat"
     - "'firewalld' in ansible_facts.packages"

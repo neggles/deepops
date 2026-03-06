@@ -1,5 +1,6 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Install NVIDIA HPC SDK
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
     - nvidia_hpc_sdk

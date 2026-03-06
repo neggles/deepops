@@ -1,36 +1,36 @@
 ---
 - name: install dependencies
-  package:
+  ansible.builtin.package:
     name: "{{ ood_master_sw_deps }}"
     state: present
   when: ood_master_sw_deps is defined
 
 - name: remove any existing OOD apps installed by ansible
-  file:
+  ansible.builtin.file:
     path: "{{ item.value.dest | default(ood_sys_app_dir) }}/{{ item.key }}"
     state: absent
   when: ood_install_apps is defined
   loop: "{{ ood_install_apps | default({}) | dict2items }}"
 
 - name: remove build dir
-  file:
+  ansible.builtin.file:
     path: "{{ ood_source_dir }}"
     state: absent
 
 - name: enable httpd listen port in SELinux
-  command: semanage port -m -t http_port_t -p tcp {{ httpd_port }}
+  ansible.builtin.command: semanage port -m -t http_port_t -p tcp {{ httpd_port }}
   when: ansible_os_family == 'RedHat'
 
 - name: set httpd to permissive in SELinux
-  command: semanage permissive -a httpd_t
+  ansible.builtin.command: semanage permissive -a httpd_t
   when: ansible_os_family == 'RedHat'
 
 - name: install Open OnDemand
-  include_role:
+  ansible.builtin.include_role:
     name: ood-ansible
 
 - name: create clusters dir
-  file:
+  ansible.builtin.file:
     path: "{{ ood_cluster_config_dir }}"
     mode: "0755"
     state: directory
@@ -38,7 +38,7 @@
     - configure
 
 - name: configure slurm cluster connector
-  template:
+  ansible.builtin.template:
     src: cluster.yml.j2
     mode: "0644"
     dest: "{{ ood_cluster_config_dir }}/{{ ood_cluster_name }}.yml"
@@ -46,7 +46,7 @@
     - configure
 
 - name: configure front page
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "{{ ood_config_dir }}/nginx_stage.yml"
     block: |
       {{ ood_frontpage_config }}
@@ -54,7 +54,7 @@
     - configure
 
 - name: install package dependency for htpasswd module
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   with_items:
@@ -65,7 +65,7 @@
   when: (ansible_distribution == "Ubuntu") or ((ansible_os_family == "RedHat") and (ansible_distribution_major_version == "8"))
 
 - name: install package dependency for htpasswd module
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
     state: present
   with_items:
@@ -75,7 +75,7 @@
   when: (ansible_os_family == "RedHat") and (ansible_distribution_major_version == "7")
 
 - name: create .htpasswd entries
-  htpasswd:
+  community.general.htpasswd:
     path: "{{ ood_htpasswd_file }}"
     name: "{{ user }}"
     password: "{{ ood_default_password }}"
@@ -85,7 +85,7 @@
     - configure
 
 - name: install required apache module
-  apache2_module:
+  community.general.apache2_module:
     state: present
     name: proxy_wstunnel
   register: mod_install
@@ -94,7 +94,7 @@
   when: ansible_distribution == 'Ubuntu'
 
 - name: install required apache module
-  apache2_module:
+  community.general.apache2_module:
     state: present
     name: proxy_wstunnel
   register: mod_install
@@ -105,8 +105,8 @@
     - configure
   when: ansible_os_family == 'RedHat'
 
-- name: restart apache after module install
-  systemd:
+- name: Restart apache after module install
+  ansible.builtin.systemd:
     service: "{{ ood_apache_service_name }}"
     state: restarted
   when: mod_install.changed # noqa no-handler
@@ -114,21 +114,21 @@
     - configure
 
 - name: create ssh key pair for default user
-  openssh_keypair:
+  community.crypto.openssh_keypair:
     path: "/home/{{ user }}/.ssh/id_rsa"
     owner: "{{ user }}"
   tags:
     - configure
 
 - name: get ssh pub key
-  slurp:
+  ansible.builtin.slurp:
     src: "/home/{{ user }}/.ssh/id_rsa.pub"
   register: user_pub_key
   tags:
     - configure
 
 - name: set ssh authorized key
-  authorized_key:
+  ansible.posix.authorized_key:
     user: "{{ user }}"
     state: present
     key: "{{ user_pub_key['content'] | b64decode }}"
@@ -136,7 +136,7 @@
     - configure
 
 - name: remove old desktop app config
-  file:
+  ansible.builtin.file:
     path: "{{ ood_desktop_app_dir }}/{{ item }}"
     state: absent
   with_items:
@@ -148,7 +148,7 @@
     - configure
 
 - name: create desktop app dir
-  file:
+  ansible.builtin.file:
     path: "{{ ood_desktops_dir }}/submit"
     mode: "0755"
     state: directory
@@ -156,7 +156,7 @@
     - configure
 
 - name: configure desktop
-  template:
+  ansible.builtin.template:
     src: desktop.yml.j2
     dest: "{{ ood_desktops_dir }}/{{ ood_cluster_name }}.yml"
     mode: "0644"
@@ -164,7 +164,7 @@
     - configure
 
 - name: configure desktop app submit
-  template:
+  ansible.builtin.template:
     src: desktop-submit.yml.erb.j2
     dest: "{{ ood_desktops_dir }}/submit/{{ ood_cluster_name }}_desktop.yml.erb"
     mode: "0644"
@@ -172,7 +172,7 @@
     - configure
 
 - name: configure desktop app form
-  template:
+  ansible.builtin.template:
     src: desktop-form.yml.j2
     dest: "{{ ood_desktop_app_dir }}/form.yml"
     mode: "0644"
@@ -180,7 +180,7 @@
     - configure
 
 - name: remove old config
-  file:
+  ansible.builtin.file:
     path: "{{ ood_codeserver_app_dir }}/{{ item }}"
     state: absent
   with_items:
@@ -192,7 +192,7 @@
     - configure
 
 - name: configure vs code app form
-  template:
+  ansible.builtin.template:
     src: bc_osc_codeserver/form.yml.j2
     dest: "{{ ood_codeserver_app_dir }}/form.yml"
     mode: "0644"
@@ -200,7 +200,7 @@
     - configure
 
 - name: configure vs code app manifest
-  template:
+  ansible.builtin.template:
     src: bc_osc_codeserver/manifest.yml.j2
     dest: "{{ ood_codeserver_app_dir }}/manifest.yml"
     mode: "0644"
@@ -208,7 +208,7 @@
     - configure
 
 - name: configure vs code app submit
-  template:
+  ansible.builtin.template:
     src: bc_osc_codeserver/submit.yml.erb.j2
     dest: "{{ ood_codeserver_app_dir }}/submit.yml.erb"
     mode: "0644"
@@ -216,7 +216,7 @@
     - configure
 
 - name: configure vs code app script
-  template:
+  ansible.builtin.template:
     src: bc_osc_codeserver/script.sh.erb.j2
     dest: "{{ ood_codeserver_app_dir }}/template/script.sh.erb"
     mode: "0755"

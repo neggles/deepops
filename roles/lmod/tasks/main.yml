@@ -2,24 +2,9 @@
 # ansible role to install lmod:
 #
 ---
-- name: RedHat | trust GPG key for EPEL
-  rpm_key:
-    key: "{{ epel_key_url }}"
-    state: present
-  when: ansible_os_family == "RedHat"
-
-- name: RedHat | add epel repo
+- name: Install packages
   become: true
-  yum:
-    name:
-      - "{{ epel_package }}"
-    state: present
-  environment: "{{ proxy_env if proxy_env is defined else {} }}"
-  when: ansible_os_family == "RedHat"
-
-- name: "install packages"
-  become: true
-  apt:
+  ansible.builtin.apt:
     update_cache: true
     name:
       - bash
@@ -28,42 +13,23 @@
     state: present
   when: ansible_os_family == "Debian"
 
-- name: "install packages"
+- name: Create lmod software path directory
   become: true
-  yum:
-    name:
-      - bash
-      - tcsh
-      - Lmod
-  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
-
-- name: "install packages"
-  become: true
-  dnf:
-    name:
-      - bash
-      - tcsh
-      - Lmod
-    enablerepo: powertools
-  when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8"
-
-- name: "mkdir software path"
-  become: true
-  file:
+  ansible.builtin.file:
     path: "{{ sm_software_path }}"
     state: directory
     mode: "0755"
 
-- name: "mkdir module path"
+- name: Create lmod module path directory
   become: true
-  file:
+  ansible.builtin.file:
     path: "{{ sm_module_path }}"
     state: directory
     mode: "0755"
 
-- name: "configure sh profile"
+- name: Configure lmod bash profile
   become: true
-  template:
+  ansible.builtin.template:
     src: templates/z00_lmod.sh
     dest: /etc/profile.d
     owner: root
@@ -72,9 +38,9 @@
   tags:
     - configuration
 
-- name: "configure csh profile"
+- name: Configure lmod csh profile
   become: true
-  template:
+  ansible.builtin.template:
     src: templates/z00_lmod.csh
     dest: /etc/profile.d
     owner: root
@@ -84,10 +50,10 @@
     - configuration
 
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=891541
-- name: "bugfix for lmod posix_c"
+- name: Bugfix for lmod posix_c
   become: true
   register: lmod_bugfix_posix
-  file:
+  ansible.builtin.file:
     src: "/usr/lib/x86_64-linux-gnu/lua/{{ item }}/posix_c.so"
     dest: "/usr/lib/x86_64-linux-gnu/lua/{{ item }}/posix.so"
     owner: "root"
@@ -102,29 +68,29 @@
     - "5.2"
     - "5.3"
 
-- name: "unset previous lmod setup"
-  shell: unset MODULEPATH_ROOT # noqa command-instead-of-shell
+- name: Unset previous lmod setup
+  ansible.builtin.shell: unset MODULEPATH_ROOT # noqa command-instead-of-shell
   register: unset_lmod_bash
   args:
     executable: /bin/bash
   changed_when: unset_lmod_bash.rc != 0
 
-- name: "unset previous lmod setup"
-  shell: unsetenv MODULEPATH_ROOT # noqa command-instead-of-shell
+- name: Unset previous lmod setup (csh)
+  ansible.builtin.shell: unsetenv MODULEPATH_ROOT # noqa command-instead-of-shell
   register: unset_lmod_csh
   args:
     executable: /bin/csh
   changed_when: unset_lmod_csh.rc != 0
 
-- name: "auto load lmod"
-  shell: . /etc/profile.d/z00_lmod.sh # noqa command-instead-of-shell
+- name: Auto load lmod
+  ansible.builtin.shell: . /etc/profile.d/z00_lmod.sh # noqa command-instead-of-shell
   register: load_lmod_bash
   args:
     executable: /bin/bash
   changed_when: load_lmod_bash.rc != 0
 
-- name: "auto load lmod "
-  shell: source /etc/profile.d/z00_lmod.csh # noqa command-instead-of-shell
+- name: Auto load lmod (csh)
+  ansible.builtin.shell: source /etc/profile.d/z00_lmod.csh # noqa command-instead-of-shell
   register: load_lmod_csh
   args:
     executable: /bin/csh

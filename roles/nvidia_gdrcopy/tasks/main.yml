@@ -52,12 +52,12 @@
       delegate_to: "{{ gdrcopy_build_host }}"
       run_once: true
       ansible.builtin.import_tasks:
-        file: build-ubuntu.yml
+        ansible.builtin.file: build-ubuntu.yml
       tags: ["gdrcopy", "build"]
 
 - name: Install gdrcopy packages
   ansible.builtin.import_tasks:
-    file: install-ubuntu.yml
+    ansible.builtin.file: install-ubuntu.yml
   when: ansible_distribution == "Ubuntu"
   tags: ["gdrcopy", "install"]
 

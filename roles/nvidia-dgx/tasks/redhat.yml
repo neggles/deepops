@@ -8,7 +8,7 @@
     state: present
 
 - name: Add epel repo
-  yum:
+  ansible.builtin.yum:
     name:
       - "{{ epel_package }}"
     state: latest
@@ -21,27 +21,27 @@
     baseurl: "{{ nvidia_dgx_rhel_baseurl }}"
 
 - name: Install packages
-  yum:
+  ansible.builtin.yum:
     name: "@DGX-1 Configurations"
     state: present
     update_cache: true
   when: ansible_product_name is search("DGX-1")
 
 - name: Install packages
-  yum:
+  ansible.builtin.yum:
     name: "@DGX-2 Configurations"
     state: present
     update_cache: true
   when: ansible_product_name is search("DGX-2")
 
 - name: Install extra packages
-  yum:
+  ansible.builtin.yum:
     name: "{{ dgx_extra_packages }}"
     state: present
     update_cache: true
 
 - name: check kernel versions
-  yum:
+  ansible.builtin.yum:
     list: kernel
   register: yum_list
 
@@ -51,7 +51,7 @@
   register: kernel_version
 
 - name: check kernel-headers versions
-  yum:
+  ansible.builtin.yum:
     list: kernel-headers
   register: yum_list
 
@@ -61,7 +61,7 @@
   register: kernel_headers_version
 
 - name: update kernel if headers don't match
-  yum:
+  ansible.builtin.yum:
     name:
       - kernel
       - kernel-tools
@@ -75,7 +75,7 @@
   tags: skip_ansible_lint
 
 - name: Install driver packages
-  package:
+  ansible.builtin.package:
     name: "{{ item }}"
   with_items:
     - cuda-drivers
@@ -85,7 +85,7 @@
   notify: reboot after driver install
 
 - name: Install Docker and the NVIDIA container runtime
-  yum:
+  ansible.builtin.yum:
     name: "{{ item }}"
     state: present
     update_cache: true
@@ -93,10 +93,10 @@
     - docker
     - "@NVIDIA container runtime"
   notify:
-    - restart docker
+    - Restart docker
 
 - name: Install DGX System Management Tools
-  yum:
+  ansible.builtin.yum:
     name: "{{ item }}"
     state: present
     update_cache: true

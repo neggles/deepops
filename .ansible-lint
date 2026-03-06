@@ -12,7 +12,15 @@ skip_list:
   - risky-shell-pipe # we always set -euo pipefail
   - var-naming[no-role-prefix] # deepops roles don't always follow this
   - role-name[path] # or this
+  - yaml
+  - name[casing] # too many of these to be worth fixing
+
+warn_list:
+  - yaml
+
 exclude_paths:
   - .cache/
+  - collections/
   # kubespray and friends make it  a n g r y  but that's not our code
   - submodules/
+  - roles/galaxy/

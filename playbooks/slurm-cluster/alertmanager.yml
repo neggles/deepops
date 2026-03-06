@@ -2,9 +2,10 @@
 - name: Install docker
   import_playbook: ../container/docker.yml
 
-- hosts: "{{ hostlist | default('all') }}"
+- name: Configure Alertmanager
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   tasks:
-    - name: configure alertmanager
+    - name: Configure alertmanager
       include_role:
         name: alertmanager
