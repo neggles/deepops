@@ -25,7 +25,8 @@
     "**/vars/**/*.{yml,yaml}": "ansible",
     "**/meta/**/*.{yml,yaml}": "ansible",
     "*.{yml,yaml}.j2": "jinja-yaml",
-    "*.service.j2": "jinja-properties"
+    "*.service.j2": "jinja-properties",
+    "**/config/logs/**/*": "log"
   },
   "files.exclude": {
     "**/.git": true,
@@ -97,6 +98,13 @@
     "editor.formatOnSave": true,
     "editor.tabSize": 2,
     "prettier.tabWidth": 2
+  },
+
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml",
+    "editor.detectIndentation": false,
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true
   },
 
   "[yaml]": {

@@ -1,0 +1,27 @@
+[project]
+name = "deepops"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "ansible>=9.13.0,<10.0.0",
+    "ansible-dev-tools>=25.10.0,<26.0.0",
+    "ansible-core",
+    "Jinja2>=3.1.5,<3.2.0",
+    "netaddr",
+    "ruamel.yaml",
+    "PyMySQL",
+    "paramiko",
+    "requests>=2.31.0,<3.0.0",
+    "jmespath>=0.10.0,<1.0.0",
+    "MarkupSafe>=3.0.2,<3.1.0",
+    "selinux",
+    "passlib>=1.7.4,<2.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "ipython>=9.10.0",
+    "ruff>=0.15.5",
+]
