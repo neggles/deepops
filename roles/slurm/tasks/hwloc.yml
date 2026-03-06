@@ -6,8 +6,8 @@
 - name: Check installed hwloc version
   ansible.builtin.shell:
     cmd: |
-      set -o pipefail
-      {{ hwloc_install_prefix }}/bin/hwloc-info --version | awk '{print $2}'
+      set -eo pipefail
+      {{ hwloc_install_prefix }}/bin/hwloc-info --version | sed -E 's/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/'
     executable: /bin/bash
   register: hwloc_info_version
   failed_when: false
@@ -16,7 +16,9 @@
 - name: Don't build hwloc if it's already installed, unless forced
   ansible.builtin.set_fact:
     slurm_hwloc_build: false
-  when: hwloc_info_version.stdout == hwloc_version and not hwloc_force_rebuild
+  when:
+    - hwloc_version in hwloc_info_version.stdout
+    - not hwloc_force_rebuild
 
 - name: Install hwloc build dependencies
   ansible.builtin.apt:
@@ -43,7 +45,7 @@
         path: "{{ hwloc_build_dir }}"
       register: slurm_hwloc_old_build_dir
 
-    - name: Uninstall old verson
+    - name: Uninstall old hwloc verson
       community.general.make:
         chdir: "{{ hwloc_build_dir }}"
         target: uninstall
@@ -51,7 +53,7 @@
       failed_when: false
       when: slurm_hwloc_old_build_dir.stat.exists
 
-    - name: Remove old build dir
+    - name: Remove old hwloc build dir
       ansible.builtin.file:
         path: "{{ hwloc_build_dir }}"
         state: absent
