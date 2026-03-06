@@ -5,6 +5,13 @@
 # Configuration common to all hosts
 # Define per-group or per-host values in the other configuration files
 #
+shared_fs_root: "/shared"
+shared_home_root: "{{ shared_fs_root }}/home"
+
+# calculated
+node_num: "{{ inventory_hostname | split('-') | last | int }}"
+first_login_host: "{{ groups['slurm-login'].0 }}"
+is_first_login: "{{ groups['slurm-login'].0 == inventory_hostname }}"
 
 ################################################################################
 # PROXY
@@ -93,14 +100,15 @@ epel_package: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansi
 ################################################################################
 # User management
 # Playbook: users, user-password
-# create user `nvidia` with password `deepops` on all nodes
-users:
-  - username: nvidia
-    name: nvidia
-    password: $6$IrxI27V4ogJFfgTV$RvNskQFvXZzE9AFsIokuXKwDAyqs9Jd03Trfi7DsHoCyllK79/zhAciZPENt4.2uRNMR0gE6.mRD/o9jP7WcZ.
-    groups: ["sudo"]
-    uid: 10007
-    home: /home/nvidia
+# example: create user `nvidia` with password `deepops` on all nodes
+# users:
+#   - username: nvidia
+#     name: nvidia
+#     password: $6$IrxI27V4ogJFfgTV$RvNskQFvXZzE9AFsIokuXKwDAyqs9Jd03Trfi7DsHoCyllK79/zhAciZPENt4.2uRNMR0gE6.mRD/o9jP7WcZ.
+#     groups: ["sudo"]
+#     uid: 10007
+#     home: /home/nvidia
+users: []
 
 ################################################################################
 # SSH HARDENING                                                                #
@@ -132,7 +140,9 @@ sftp_chroot: false
 # Playbook: nvidia-set-gpu-clocks
 # Resets the Gpu clocks to the default values. (see the `--reset-gpu-clocks` flag in nvidia-smi for more)
 gpu_clock_reset: false
-# Specifies <minGpuClock,maxGpuClock> clocks as a pair (e.g. 1500,1500) that defines the range of desired locked GPU clock speed in MHz. Setting this will supersede application clocks and take effect regardless if an app is running. Input can also be a singular desired clock value. (see the `--lock-gpu-clocks` flag in nvidia-smi for more)
+# Specifies <minGpuClock,maxGpuClock> clocks as a pair (e.g. 1500,1500) that defines the range of desired locked GPU clock speed in MHz.
+# Setting this will supersede application clocks and take effect regardless if an app is running.
+# Input can also be a singular desired clock value. (see the `--lock-gpu-clocks` flag in nvidia-smi for more)
 gpu_clock_lock: "1507,1507"
 
 # Debugging var: force install NVIDIA driver even if GPU not detected
@@ -146,8 +156,11 @@ nvidia_driver_force_install: false
 #
 # For supported Docker versions, see: submodules/kubespray/roles/container-engine/docker/vars/*
 docker_install: true
-# docker_version: 'latest'
-docker_dns_servers_strict: false
+docker_version: "latest"
+docker_cli_version: "latest"
+docker_containerd_version: "latest"
+
+docker_dns_servers_strict: true
 docker_storage_options: -s overlay2
 #docker_options: "--bip=192.168.99.1/24"
 # Enable docker iptables
@@ -198,9 +211,8 @@ enroot_environ_config_files_dgx:
 # see roles/singularity_wrapper/defaults/main.yml for default
 # singularity_version:
 singularity_conf_path: "/etc/singularity/singularity.conf"
-bind_paths: []
-  # example:
-  #- /mnt/shared
+bind_paths:
+  - "{{ shared_fs_root }}/shared"
 golang_install_dir: "/opt/go/{{ golang_version }}"
 golang_gopath: /opt/go/packages
 
@@ -271,7 +283,7 @@ install_dcgm: true
 deepops_dir: /opt/deepops
 # Directory for python virtualenv
 # Roles: K8s GPU operator, GPU plugin, OpenShift/K8s
-deepops_venv: "{{ deepops_dir }}/venv"
+deepops_venv: "{{ deepops_dir }}/.venv"
 
 # Disable cloud-init
 deepops_disable_cloud_init: true

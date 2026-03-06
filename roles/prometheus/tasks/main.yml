@@ -23,7 +23,7 @@
     dest: "{{ prometheus_config_dir }}/rules/alert_rules.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: install config file
   template:
@@ -31,7 +31,7 @@
     dest: "{{ prometheus_config_dir }}/prometheus.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: restart prometheus
 
 - name: Ensure Python 2 dependencies are installed via OS packages
@@ -64,7 +64,7 @@
     dest: "/etc/systemd/system/{{ prometheus_svc_name }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: restart prometheus
 
 - name: configure service

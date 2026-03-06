@@ -1,10 +1,16 @@
 ---
-- hosts: slurm-master[0]
+- name: Install Open OnDemand server on master node
+  hosts: slurm-master[0]
   become: true
   roles:
-    - {role: ood-wrapper, ood_is_server: true}
+    - role: ood-wrapper
+      vars:
+        ood_is_server: true
 
-- hosts: slurm-node
+- name: Install Open OnDemand client on compute nodes
+  hosts: slurm-node
   become: true
   roles:
-    - {role: ood-wrapper, ood_is_client: true}
+    - role: ood-wrapper
+      vars:
+        ood_is_client: true

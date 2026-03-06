@@ -135,14 +135,14 @@
   template:
     src: dgx.list.j2
     dest: /etc/apt/sources.list.d/dgx.list
-    mode: 0644
+    mode: "0644"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGX repo for DGX OS 5
   template:
     src: dgxos5.list.j2
     dest: /etc/apt/sources.list.d/dgx-temp.list
-    mode: 0644
+    mode: "0644"
   when: ansible_distribution_version == "20.04"
 
 - name: update apt cache
@@ -351,7 +351,7 @@
   template:
     src: sources.list.j2
     dest: /etc/apt/sources.list
-    mode: 0644
+    mode: "0644"
   when: ansible_distribution_version == "18.04"
 
 - name: disable srp services

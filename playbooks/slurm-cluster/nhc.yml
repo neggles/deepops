@@ -1,6 +1,6 @@
 ---
 - name: Install NHC
-  hosts: "{{ hostlist | default('all') }}"
+  hosts: "{{ hostlist | default('slurm-node') }}"
   become: true
   tasks:
     - name: Gather custom facts

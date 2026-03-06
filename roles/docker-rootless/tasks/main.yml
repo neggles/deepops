@@ -55,7 +55,7 @@
   template:
     src: "{{ role_path }}/templates/rootless_docker_setup.sh.j2"
     dest: /tmp/rootless_docker_setup.sh
-    mode: 0755
+    mode: "0755"
   when: not rootless_docker_installed.stat.exists
 
 - name: Execute setup rootless docker script

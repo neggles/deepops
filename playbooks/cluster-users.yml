@@ -143,10 +143,16 @@
 
     - name: Create SLURM user accounts # noqa: run-once[task]
       ansible.builtin.command:
-        cmd: "sacctmgr -i add user {{ item.name }} account={{ item.slurm_account_name | default(slurm_account_name) }} adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
+        cmd: >
+          sacctmgr -i add user {{ item.name }}
+          account={{ item.slurm_account_name | default(users_default_slurm_account) }}
+          adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
       loop: "{{ users }}"
       loop_control:
-        label: "{{ item.name }}, account={{ item.slurm_account_name | default(slurm_account_name) }}, kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
+        label: >
+          {{ item.name }},
+          account={{ item.slurm_account_name | default(users_default_slurm_account) }},
+          kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
       when:
         - item.enabled | bool
         - item.name not in slurm_user_check.stdout_lines

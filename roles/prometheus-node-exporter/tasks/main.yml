@@ -17,7 +17,7 @@
     dest: "{{ prometheus_cfg_endpoint_dir }}/node-exporter.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: install systemd unit file
   template:
@@ -25,7 +25,7 @@
     dest: "/etc/systemd/system/{{ node_exporter_svc_name }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: configure service
   systemd:

@@ -105,7 +105,7 @@
     dest: /etc/profile.d
     owner: root
     group: root
-    mode: 0777
+    mode: "0777"
   when: not ebsw_exe.matched
   tags:
     - configuration
@@ -117,7 +117,7 @@
     dest: /etc/profile.d
     owner: root
     group: root
-    mode: 0777
+    mode: "0777"
   when: not ebsw_exe.matched
   tags:
     - configuration

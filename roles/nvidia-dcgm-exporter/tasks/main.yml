@@ -17,7 +17,7 @@
     dest: "{{ prometheus_cfg_endpoint_dir }}/dcgm-exporter.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: create dcgm-exporter config dir
   file:
@@ -42,7 +42,7 @@
     dest: "/etc/systemd/system/{{ nvidia_dcgm_svc_name }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   when: has_gpus
   notify: restart dcgm
 

@@ -59,7 +59,7 @@
   file:
     path: "{{ sm_module_path }}"
     state: directory
-    mode: 0755
+    mode: "0755"
 
 - name: "configure sh profile"
   become: true
@@ -68,7 +68,7 @@
     dest: /etc/profile.d
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   tags:
     - configuration
 
@@ -79,7 +79,7 @@
     dest: /etc/profile.d
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
   tags:
     - configuration
 

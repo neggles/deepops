@@ -65,4 +65,4 @@
 - name: set pyxis shared-object permissions
   file:
     path: "/usr/local/src/pyxis/spank_pyxis.so"
-    mode: 0755
+    mode: "0755"

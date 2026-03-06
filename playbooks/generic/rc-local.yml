@@ -7,13 +7,13 @@
         path: /etc/rc.local
         line: "#!/bin/sh -e"
         insertbefore: BOF
-        mode: 0755
+        mode: "0755"
         create: true
       when: ansible_distribution == "Ubuntu"
     - name: manage /etc/rc.d/rc.local permissions on RHEL/CentOS
       file:
         path: /etc/rc.d/rc.local
-        mode: 0755
+        mode: "0755"
       when: ansible_os_family == "RedHat"
     - name: manage /etc/rc.local contents
       blockinfile:
@@ -21,7 +21,7 @@
         block: |
           {{ rc_local_contents | default('# ansible: rc_local_contents undefined') }}
         insertbefore: "^exit 0"
-        mode: 0755
+        mode: "0755"
         create: true
     - name: manage rc-local service
       systemd:

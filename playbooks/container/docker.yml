@@ -2,7 +2,7 @@
 - name: Gather docker preinstallation facts
   hosts: "{{ hostlist | default('all') }}"
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   tags:
     - docker
   vars_files:
@@ -24,7 +24,7 @@
 - name: Install Docker
   hosts: "{{ hostlist | default('all') }}"
   become: true
-  become_method: sudo
+  become_method: ansible.builtin.sudo
   tags:
     - docker
   vars:

@@ -27,7 +27,7 @@
     dest: "{{ prometheus_cfg_endpoint_dir }}/slurm-exporter.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Create grafana data and dashboard dirs
   ansible.builtin.file:
@@ -55,7 +55,7 @@
     dest: "{{ slurm_exporter_config_dir }}/Dockerfile"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Install docker-compose file
   ansible.builtin.template:
@@ -63,7 +63,7 @@
     dest: "{{ slurm_exporter_config_dir }}/docker-compose.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
 
 - name: Run docker compose build
   community.docker.docker_compose_v2:
@@ -78,7 +78,7 @@
     dest: "/etc/systemd/system/{{ slurm_exporter_svc_name }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Restart slurm-exporter
 
 - name: Configure service

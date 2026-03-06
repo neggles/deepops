@@ -13,7 +13,7 @@
     dest: /usr/sbin/policy-rc.d
     owner: root
     group: root
-    mode: 0700
+    mode: "0700"
   changed_when: false
 
 - name: install Ubuntu packages
@@ -30,8 +30,8 @@
 - name: set server
   lineinfile:
     dest: /etc/yp.conf
-    regexp: '^domain'
-    line: 'domain {{ nis_domain }} server {{ nis_server }}'
+    regexp: "^domain"
+    line: "domain {{ nis_domain }} server {{ nis_server }}"
   notify: "restart nis"
 
 - name: create default domain name file
@@ -46,8 +46,8 @@
 - name: configure yp domainname
   lineinfile:
     dest: /etc/defaultdomain
-    regexp: '^'
-    line: '{{ nis_domain }}'
+    regexp: "^"
+    line: "{{ nis_domain }}"
   notify: "restart nis"
 
 - name: configure nsswitch.conf
@@ -56,10 +56,10 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - { regexp: '^passwd', line: 'passwd: files nis' }
-    - { regexp: '^group', line: 'group: files nis' }
-    - { regexp: '^shadow', line: 'shadow: files nis' }
-    - { regexp: '^automount', line: 'automount: files nis' }
+    - {regexp: "^passwd", line: "passwd: files nis"}
+    - {regexp: "^group", line: "group: files nis"}
+    - {regexp: "^shadow", line: "shadow: files nis"}
+    - {regexp: "^automount", line: "automount: files nis"}
   notify: "restart nis"
 
 - name: make sure rpcbind is running
@@ -75,7 +75,7 @@
   service: name=ypbind state=started enabled=yes
   when: ansible_os_family == "RedHat"
   tags:
-  - molecule-notest
+    - molecule-notest
 
 - name: remove file to prevent starting services at install time
   file:

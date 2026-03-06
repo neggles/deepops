@@ -3,12 +3,18 @@
 
 - name: Install python required for Ansible
   import_playbook: bootstrap/bootstrap-python.yml
+  when: slurm_cluster_do_bootstrap | default(true)
+  tags: bootstrap
 
 - name: Set up SSH keys if needed
   import_playbook: bootstrap/bootstrap-ssh.yml
+  when: slurm_cluster_do_bootstrap | default(true)
+  tags: bootstrap
 
 - name: Set up passwordless sudo if needed
   import_playbook: bootstrap/bootstrap-sudo.yml
+  when: slurm_cluster_do_bootstrap | default(true)
+  tags: bootstrap
 
 - name: Disable cloud-init
   import_playbook: generic/disable-cloud-init.yml
@@ -26,7 +32,7 @@
 
 - name: Set up a local cluster container registry
   import_playbook: container/standalone-container-registry.yml hostlist=slurm-master
-  when: slurm_enable_container_registry|default(true)
+  when: slurm_enable_container_registry | default(true)
 
 - name: Set up NGINX-based container caching | Install docker registry cache server
   import_playbook: container/nginx-docker-registry-cache-server.yml
@@ -42,7 +48,7 @@
 
 - name: Install NVIDIA driver
   import_playbook: nvidia-software/nvidia-driver.yml
-  when: slurm_cluster_install_nvidia_driver|default(true)
+  when: slurm_cluster_install_nvidia_driver | default(true)
 
 # Install NVIDIA CUDA Toolkit
 #   Note: the CUDA playbook also installs the driver, so we pass the
@@ -93,36 +99,36 @@
     hostlist: "{{ sm_install_host | default('slurm-login[0]')}}"
   when: slurm_install_hpcsdk
 
-- name: Install monitoring services | Install prometheus
+- name: Install prometheus
   import_playbook: slurm-cluster/prometheus.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
-- name: Install monitoring services | Install grafana
+- name: Install grafana on monitoring nodes
   import_playbook: slurm-cluster/grafana.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
-- name: Install monitoring services | Install alert manager
+- name: Install alert manager
   import_playbook: slurm-cluster/alertmanager.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
 # Install monitoring exporters
-- name: Install monitoring exporters | Install prometheus slurm exporter
+- name: Install prometheus slurm exporter
   import_playbook: slurm-cluster/prometheus-slurm-exporter.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
-- name: Install monitoring exporters | Install prometheus node exporter
+- name: Install prometheus node exporter
   import_playbook: slurm-cluster/prometheus-node-exporter.yml
   when: slurm_enable_monitoring
 
-- name: Install monitoring exporters | Install nvidia dcgm exporter
+- name: Install nvidia dcgm exporter
   import_playbook: slurm-cluster/nvidia-dcgm-exporter.yml
   when: slurm_enable_monitoring
 

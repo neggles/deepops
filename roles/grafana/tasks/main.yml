@@ -47,7 +47,7 @@
     dest: "{{ grafana_config_dir }}/provisioning/datasources/prometheus-datasource.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Restart grafana
 
 - name: Install dashboard config
@@ -56,7 +56,7 @@
     dest: "{{ grafana_config_dir }}/provisioning/dashboards/prometheus-dashboard.yml"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Restart grafana
 
 - name: Install config file
@@ -65,7 +65,7 @@
     dest: "{{ grafana_config_dir }}/grafana.ini"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Restart grafana
 
 - name: Install systemd unit file
@@ -74,7 +74,7 @@
     dest: "/etc/systemd/system/{{ grafana_svc_name }}"
     owner: root
     group: root
-    mode: 0644
+    mode: "0644"
   notify: Restart grafana
 
 - name: Configure service

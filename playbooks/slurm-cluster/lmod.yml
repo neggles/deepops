@@ -1,5 +1,6 @@
 ---
-- hosts: "{{ hostlist | default('all') }}"
+- name: Install Lmod
+  hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
     - lmod

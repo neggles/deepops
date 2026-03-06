@@ -45,7 +45,9 @@
     "**/*.code-search": true,
     "**/.ruff_cache": true,
     "**/.venv": true,
-    "**/venv": true
+    "**/venv": true,
+    "**/collections": true,
+    "**/roles/galaxy": true
   },
 
   "[python]": {
