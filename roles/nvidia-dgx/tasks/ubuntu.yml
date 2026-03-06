@@ -24,7 +24,7 @@
   apt:
     name: dmidecode
     state: present
-    update_cache: yes
+    update_cache: true
 
 # Housekeeping
 - name: register DGX product name
@@ -69,7 +69,7 @@
 - name: update dgx platform file
   blockinfile:
     path: /etc/dgx-release
-    create: yes
+    create: true
     block: |
       DGX_NAME="DGX Server"
       DGX_PRETTY_NAME="NVIDIA DGX Server"
@@ -79,7 +79,7 @@
 - name: update dgx platform file with additional info for DGX OS 4
   blockinfile:
     path: /etc/dgx-release
-    create: yes
+    create: true
     block: |
       DGX_SWBUILD_DATE="{{ DGX_SWBUILD_DATE }}"
       DGX_SWBUILD_VERSION="{{ DGX_SWBUILD_VERSION }}"
@@ -96,7 +96,7 @@
   apt:
     name: "{{ item }}"
     state: absent
-    purge: yes
+    purge: true
   with_items:
     - cuda-dcgm
     - cuda-driver
@@ -147,26 +147,26 @@
 
 - name: update apt cache
   apt:
-    update_cache: yes
+    update_cache: true
 
 - name: add DGX cuda 10.1 repo for DGX OS 4
   apt:
     name: dgx-bionic-r418+cuda10.1-repo
-    update_cache: yes
+    update_cache: true
     dpkg_options: "force-confdef,force-confold"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGX cuda 11.0 repo for DGX OS 4
   apt:
     name: dgx-bionic-r450+cuda11.0-repo
-    update_cache: yes
+    update_cache: true
     dpkg_options: "force-confdef,force-confold"
   when: ansible_distribution_version == "18.04"
 
 - name: add DGXA100 repo for DGX OS 4
   apt:
     name: dgx-bionic-4.99-repo
-    update_cache: yes
+    update_cache: true
     dpkg_options: "force-confdef,force-confold"
   when:
     - ansible_distribution_version == "18.04"
@@ -176,7 +176,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ G_PREREQS }}"
     - "{{ G_SETUP_PKGS }}"
@@ -185,7 +185,7 @@
 - name: install DGX repo package for DGX OS 5
   apt:
     name: "{{ item }}"
-    update_cache: yes
+    update_cache: true
     dpkg_options: "force-confdef,force-confold"
   with_items:
     - "{{ G_DGX_REPO_PKG }}"
@@ -200,7 +200,7 @@
 - name: install more packages for DGX OS 5
   apt:
     name: "{{ item }}"
-    update_cache: yes
+    update_cache: true
     dpkg_options: "force-confdef,force-confold"
   with_items:
     - "{{ G_PKGS_DEFAULT }}"
@@ -210,7 +210,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ PKGS_DGX1_ALL }}"
   when:
@@ -223,7 +223,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ G_DGX_COMMON_PKGS }}"
     - "{{ G_DGX1_PKGS }}"
@@ -237,7 +237,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ PKGS_DGX2_ALL }}"
   when:
@@ -250,7 +250,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ G_DGX_COMMON_PKGS }}"
     - "{{ G_DGX2_PKGS }}"
@@ -264,7 +264,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ PKGS_DGXA100_ALL }}"
   when:
@@ -277,7 +277,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ G_DGX_COMMON_PKGS }}"
     - "{{ G_DGX_A100_PKGS }}"
@@ -291,7 +291,7 @@
   apt:
     name: "{{ item }}"
     state: present
-    update_cache: yes
+    update_cache: true
   with_items:
     - "{{ dgx_extra_packages }}"
   when: ansible_distribution_version == "18.04"
@@ -314,7 +314,7 @@
 - name: disable release update prompt for DGX OS 5
   lineinfile:
     path: /etc/update-manager/release-upgrades
-    regexp: '^Prompt=.*'
+    regexp: "^Prompt=.*"
     line: Prompt=never
   when: ansible_distribution_version == "20.04"
 
@@ -330,8 +330,8 @@
   systemd:
     name: "{{ item }}"
     state: started
-    enabled: yes
-    daemon_reload: yes
+    enabled: true
+    daemon_reload: true
   loop:
     - openibd.service
     - dcgm.service
@@ -358,7 +358,7 @@
   systemd:
     name: "{{ item }}"
     state: stopped
-    enabled: no
+    enabled: false
   when: ansible_product_name is search("DGXA100")
   with_items:
     - srp_daemon
@@ -381,4 +381,4 @@
   systemd:
     name: docker
     state: restarted
-    enabled: yes
+    enabled: true

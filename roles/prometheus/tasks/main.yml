@@ -72,5 +72,5 @@
     name: "{{ prometheus_svc_name }}"
     state: "{{ prometheus_state }}"
     enabled: "{{ prometheus_enabled }}"
-    daemon_reload: yes
+    daemon_reload: true
   notify: restart prometheus

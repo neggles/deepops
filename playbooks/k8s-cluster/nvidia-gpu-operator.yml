@@ -4,7 +4,7 @@
 
 # GPU operator
 - hosts: kube-master[0]
-  become: yes
+  become: true
   tasks:
     - name: Install helm chart for GPU operator
       include_role:

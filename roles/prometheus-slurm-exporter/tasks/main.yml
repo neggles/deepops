@@ -68,8 +68,8 @@
 - name: Run docker compose build
   community.docker.docker_compose_v2:
     project_src: "{{ slurm_exporter_config_dir }}"
-    build: yes
-    pull: yes
+    build: true
+    pull: true
     state: present
 
 - name: Install systemd unit file
@@ -86,5 +86,5 @@
     name: "{{ slurm_exporter_svc_name }}"
     state: "{{ slurm_exporter_state }}"
     enabled: "{{ slurm_exporter_enabled }}"
-    daemon_reload: yes
+    daemon_reload: true
   notify: Restart slurm-exporter

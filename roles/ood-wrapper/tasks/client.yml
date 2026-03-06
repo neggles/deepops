@@ -23,7 +23,7 @@
 - name: install codeserver
   unarchive:
     src: "{{ ood_url_codeserver_src }}"
-    remote_src: yes
+    remote_src: true
     dest: /usr/local/bin
     exclude:
       - README.md

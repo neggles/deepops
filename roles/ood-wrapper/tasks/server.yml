@@ -48,7 +48,7 @@
 - name: configure front page
   blockinfile:
     path: "{{ ood_config_dir }}/nginx_stage.yml"
-    block : |
+    block: |
       {{ ood_frontpage_config }}
   tags:
     - configure
@@ -80,7 +80,7 @@
     name: "{{ user }}"
     password: "{{ ood_default_password }}"
     mode: "0600"
-    create: yes
+    create: true
   tags:
     - configure
 
@@ -109,7 +109,7 @@
   systemd:
     service: "{{ ood_apache_service_name }}"
     state: restarted
-  when: mod_install.changed  # noqa no-handler
+  when: mod_install.changed # noqa no-handler
   tags:
     - configure
 

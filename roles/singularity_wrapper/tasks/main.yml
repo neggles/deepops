@@ -18,14 +18,14 @@
 
 - name: debian - ensure apt cache is up to date
   apt:
-    update_cache: yes
+    update_cache: true
   when: ansible_os_family == "Debian"
   changed_when: false
 
 - name: create a folder for go
   file:
     path: "{{ golang_install_dir }}"
-    recurse: yes
+    recurse: true
 
 - name: install golang explicitly
   include_role:

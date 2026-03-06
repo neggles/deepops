@@ -14,7 +14,7 @@
   git:
     repo: "{{ sm_files_url }}"
     dest: "{{ sm_files_path }}"
-    update: yes
+    update: true
     version: "{{ sm_files_repo_version }}"
   when: sm_install_default
 
@@ -28,7 +28,7 @@
     paths: "{{ sm_files_path }}"
     file_type: file
     patterns: "*.eb"
-    recurse: no
+    recurse: false
   register: eb_meta
   when: eb_path.stat.isdir is defined and eb_path.stat.isdir
 
@@ -40,9 +40,9 @@
   with_items: "{{ eb_meta.files }}"
 
 - name: "install the selected easybuild modules"
-  shell: |  
-    . /etc/profile.d/z00_lmod.sh && 
-    . /etc/profile.d/z01_eb.sh   && 
+  shell: |
+    . /etc/profile.d/z00_lmod.sh &&
+    . /etc/profile.d/z01_eb.sh   &&
     eb --parallel=16 "{{ item }}" --robot
   with_items:
     - "{{ eb_files | sort() }}"

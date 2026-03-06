@@ -1,7 +1,7 @@
 ---
 # Your custom playbooks should go in your DeepOps configuration directory,
 # under `config/playbooks`.
-# 
+#
 # These playbooks can be used to make any customizations to your cluster
 # that aren't already provided by DeepOps!
 # For example, this playbook installs `cowsay` on all your Kubernetes nodes.
@@ -11,9 +11,9 @@
 #   https://docs.ansible.com/ansible/latest/user_guide/playbooks.html
 
 - hosts: kube-node
-  become: yes
+  become: true
   tasks:
-  - name: install cowsay
-    package:
-      name: cowsay
-      state: present
+    - name: install cowsay
+      package:
+        name: cowsay
+        state: present

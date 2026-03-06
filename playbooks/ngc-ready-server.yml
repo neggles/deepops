@@ -1,5 +1,4 @@
 ---
-
 - name: Install python
   import_playbook: bootstrap/bootstrap-python.yml
 
@@ -29,7 +28,7 @@
       apt:
         name: python3-docker
         state: present
-        update_cache: yes
+        update_cache: true
       when: ansible_distribution == "Ubuntu"
     - name: Enable EPEL repo
       package:
@@ -52,17 +51,17 @@
     - name: pull CUDA container
       docker_container:
         name: gpu-test-pull
-        image: "{{ ngc_ready_cuda_container }}" 
-        auto_remove: yes
-        pull: yes
+        image: "{{ ngc_ready_cuda_container }}"
+        auto_remove: true
+        pull: true
       tags:
         - test
         - never
     - name: test CUDA container
       docker_container:
         name: gpu-test
-        image: "{{ ngc_ready_cuda_container }}" 
-        detach: no
+        image: "{{ ngc_ready_cuda_container }}"
+        detach: false
         command: nvidia-smi -L
       register: cuda
       tags:
@@ -85,8 +84,8 @@
       docker_container:
         name: pytorch-pull
         image: "{{ ngc_ready_pytorch }}"
-        auto_remove: yes
-        pull: yes
+        auto_remove: true
+        pull: true
       tags:
         - test
         - never
@@ -95,7 +94,7 @@
         name: pytorch
         image: "{{ ngc_ready_pytorch }}"
         working_dir: /opt/pytorch/examples/upstream/mnist
-        detach: no
+        detach: false
         network_mode: host
         command: "python main.py"
       register: pytorch
@@ -119,8 +118,8 @@
       docker_container:
         name: tensorflow-pull
         image: "{{ ngc_ready_tensorflow }}"
-        auto_remove: yes
-        pull: yes
+        auto_remove: true
+        pull: true
       tags:
         - test
         - never
@@ -129,7 +128,7 @@
         name: tensorflow
         image: "{{ ngc_ready_tensorflow }}"
         working_dir: /opt/tensorflow/tensorflow/examples/tutorials/mnist
-        detach: no
+        detach: false
         network_mode: host
         command: "python mnist_with_summaries.py"
       register: tensorflow

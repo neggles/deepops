@@ -9,4 +9,4 @@
   user:
     name: "{{ user }}"
     home: "{{ move_home_dirs_new_root }}/{{ user }}"
-    move_home: yes
+    move_home: true

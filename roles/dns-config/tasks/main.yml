@@ -10,7 +10,7 @@
   service:
     name: "{{ item }}"
     state: stopped
-    enabled: no
+    enabled: false
   loop:
     - resolvconf
     - systemd-resolved
@@ -20,7 +20,7 @@
   service:
     name: systemd-resolved
     state: stopped
-    enabled: no
+    enabled: false
   when: ansible_distribution == 'Ubuntu' and (ansible_distribution_major_version in ['18', '20'])
 
 - name: install /etc/resolv.conf
@@ -29,10 +29,10 @@
     dest: /etc/resolv.conf
     owner: root
     group: root
-    mode: '0644'
+    mode: "0644"
 
 - name: update /etc/nsswitch.conf
   lineinfile:
     path: /etc/nsswitch.conf
-    regexp: '^hosts:'
-    line: 'hosts: files dns'
+    regexp: "^hosts:"
+    line: "hosts: files dns"

@@ -31,6 +31,7 @@
       ansible.builtin.apt:
         update_cache: true
       when: ansible_distribution == "Ubuntu"
+      changed_when: false # Don't want this to show as changed every time
 
     - name: Install python 3 libraries if python 3 is present
       ansible.builtin.package:

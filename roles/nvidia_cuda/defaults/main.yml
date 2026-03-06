@@ -16,7 +16,7 @@ cuda_dgx_a100_version: "{{ cuda_version }}"
 
 # Should we install the /etc/profile.d/cuda-vars.sh script that will put
 # the CUDA toolkit binaries and libraries in the default environment?
-cuda_toolkit_add_profile_script: yes
+cuda_toolkit_add_profile_script: true
 
 # RedHat family
 epel_package: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"

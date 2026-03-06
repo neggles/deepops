@@ -51,6 +51,6 @@
     name: "{{ nvidia_dcgm_svc_name }}"
     state: "{{ nvidia_dcgm_state }}"
     enabled: "{{ nvidia_dcgm_enabled }}"
-    daemon_reload: yes
+    daemon_reload: true
   notify: restart dcgm
   when: has_gpus

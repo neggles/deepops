@@ -25,6 +25,6 @@
   service:
     name: cachefilesd
     state: restarted
-    enabled: yes
+    enabled: true
   tags:
-  - molecule-notest
+    - molecule-notest

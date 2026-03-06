@@ -32,5 +32,5 @@
     name: "{{ node_exporter_svc_name }}"
     state: "{{ node_exporter_state }}"
     enabled: "{{ node_exporter_enabled }}"
-    daemon_reload: yes
+    daemon_reload: true
   notify: restart node-exporter

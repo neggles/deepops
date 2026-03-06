@@ -12,7 +12,7 @@
     path: "{{ item.path }}"
     state: "directory"
     mode: "0755"
-  with_items: '{{ nfs_exports }}'
+  with_items: "{{ nfs_exports }}"
   notify: restart nfs
   tags:
     - nfs
@@ -20,13 +20,13 @@
 - name: ensure statd is enabled
   service:
     name: rpc-statd
-    enabled: yes
+    enabled: true
     state: started
   notify:
-  - restart rpcbind
-  - restart nfs
+    - restart rpcbind
+    - restart nfs
   tags:
-  - nfs
+    - nfs
 
 - name: configure exports
   template:
@@ -44,7 +44,7 @@
   service:
     name: "{{ nfs_server_daemon }}"
     state: started
-    enabled: yes
+    enabled: true
   when: nfs_exports|length
   tags:
     - nfs

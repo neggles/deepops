@@ -9,7 +9,7 @@
 - name: copy pyxis source
   unarchive:
     src: "{{ slurm_pyxis_tarball_url }}"
-    remote_src: yes
+    remote_src: true
     dest: /usr/local/src/pyxis
     extra_opts:
       - --strip-components=1

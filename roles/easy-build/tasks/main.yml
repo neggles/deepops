@@ -3,51 +3,51 @@
 #
 ---
 - name: "install needed packages"
-  become: yes
+  become: true
   action: apt name=python3-setuptools state=present
   when: ansible_os_family == "Debian"
 
 - name: "install needed packages"
-  become: yes
+  become: true
   action: yum name=python3-setuptools state=present
   when: ansible_os_family == "RedHat"
 
-- name: "rm previous tmp folders"    
-  file: 
+- name: "rm previous tmp folders"
+  file:
     path: "{{ eb_tmp_dir }}"
     state: absent
-    force: yes
+    force: true
 
 - name: "check if easybuild is installed"
   find:
     paths: "{{ sm_software_path }}/EasyBuild/"
     file_type: file
     patterns: "^eb$"
-    use_regex: yes
-    recurse: yes
+    use_regex: true
+    recurse: true
   register: ebsw_exe
-  ignore_errors: yes
+  ignore_errors: true
 
-- name: "mkdir tmp folders"    
-  file: 
+- name: "mkdir tmp folders"
+  file:
     path: "{{ eb_tmp_dir }}"
     state: directory
-    force: yes
-    recurse: yes
-    mode: 'u=rwx,g=rwx,o=rx'
+    force: true
+    recurse: true
+    mode: "u=rwx,g=rwx,o=rx"
   when: not ebsw_exe.matched
 
 - name: "download bootstrap script"
   get_url: url="{{ item.url }}" dest="{{ item.dest }}" mode='u=rwx,g=rwx,o=rx' force=yes
   with_items:
-    - url: "{{ eb_bootstrap_url }}" 
-      dest: '/tmp'
+    - url: "{{ eb_bootstrap_url }}"
+      dest: "/tmp"
   when: not ebsw_exe.matched
 
 #
 # Ansible doesn't run task in a login shell, so we have to source the
 # EasyBuild config manually. We might want to create some abstraction for this.
-# 
+#
 - name: "install latest EasyBuild version"
   shell: . /etc/profile && python3 /tmp/bootstrap_eb.py {{ eb_tmp_dir }}
   args:
@@ -55,7 +55,7 @@
   when: not ebsw_exe.matched
 
 - name: "get EasyBuild version"
-  become: yes
+  become: true
   command: ls {{ eb_tmp_dir }}/software/EasyBuild/
   args:
     executable: /bin/bash
@@ -68,23 +68,23 @@
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
   with_items:
-    - regexp: '^local root .*$'
+    - regexp: "^local root .*$"
       line: 'local root = "{{ sm_software_path }}/EasyBuild/{{ ebsw_version.stdout }}"'
   when: not ebsw_exe.matched
 
 - name: ensure directory ownership is correct for software paths
-  become: yes
+  become: true
   file:
     path: "{{ item }}"
     owner: "{{ ansible_user }}"
     state: "directory"
-    recurse: yes
+    recurse: true
   with_items:
-  - "{{ sm_software_path }}"
-  - "{{ sm_module_root }}"
-  - "{{ sm_files_path }}"
-  - "{{ sm_sources_path }}"
-  - "{{ sm_build_path }}"
+    - "{{ sm_software_path }}"
+    - "{{ sm_module_root }}"
+    - "{{ sm_files_path }}"
+    - "{{ sm_sources_path }}"
+    - "{{ sm_build_path }}"
 
 - name: "cp EasyBuild software"
   command: cp -R "{{ eb_tmp_dir }}/software/EasyBuild" "{{ sm_software_path }}"
@@ -99,7 +99,7 @@
   when: not ebsw_exe.matched
 
 - name: "configure sh profile"
-  become: yes
+  become: true
   template:
     src: templates/z01_eb.sh
     dest: /etc/profile.d
@@ -111,7 +111,7 @@
     - configuration
 
 - name: "configure csh profile"
-  become: yes
+  become: true
   template:
     src: templates/z01_eb.csh
     dest: /etc/profile.d

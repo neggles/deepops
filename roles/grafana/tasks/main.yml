@@ -82,5 +82,5 @@
     name: "{{ grafana_svc_name }}"
     state: "{{ grafana_state }}"
     enabled: "{{ grafana_enabled }}"
-    daemon_reload: yes
+    daemon_reload: true
   notify: Restart grafana

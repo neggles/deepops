@@ -17,9 +17,9 @@
 - name: configure firewall to allow NFS server
   ansible.posix.firewalld:
     service: "{{ item }}"
-    permanent: yes
+    permanent: true
     state: enabled
-    immediate: no
+    immediate: false
   with_items:
     - mountd
     - rpc-bind
@@ -37,8 +37,8 @@
   tags:
     - nfs
   notify:
-  - restart rpcbind
-  - restart nfs
+    - restart rpcbind
+    - restart nfs
   when:
     - ansible_os_family == "RedHat"
     - "'firewalld' in ansible_facts.packages"

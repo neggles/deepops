@@ -9,60 +9,60 @@
   when: ansible_os_family == "RedHat"
 
 - name: RedHat | add epel repo
-  become: yes
+  become: true
   yum:
-    name: 
+    name:
       - "{{ epel_package }}"
     state: present
   environment: "{{ proxy_env if proxy_env is defined else {} }}"
   when: ansible_os_family == "RedHat"
 
 - name: "install packages"
-  become: yes
+  become: true
   apt:
-    update_cache: yes
+    update_cache: true
     name:
-    - bash
-    - tcsh
-    - lmod
+      - bash
+      - tcsh
+      - lmod
     state: present
   when: ansible_os_family == "Debian"
 
 - name: "install packages"
-  become: yes
+  become: true
   yum:
     name:
-    - bash
-    - tcsh
-    - Lmod
+      - bash
+      - tcsh
+      - Lmod
   when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "7"
 
 - name: "install packages"
-  become: yes
+  become: true
   dnf:
     name:
-    - bash
-    - tcsh
-    - Lmod
+      - bash
+      - tcsh
+      - Lmod
     enablerepo: powertools
   when: ansible_os_family == "RedHat" and ansible_distribution_major_version == "8"
 
 - name: "mkdir software path"
-  become: yes
+  become: true
   file:
     path: "{{ sm_software_path }}"
     state: directory
     mode: "0755"
 
 - name: "mkdir module path"
-  become: yes
+  become: true
   file:
     path: "{{ sm_module_path }}"
-    state: directory 
+    state: directory
     mode: 0755
 
 - name: "configure sh profile"
-  become: yes
+  become: true
   template:
     src: templates/z00_lmod.sh
     dest: /etc/profile.d
@@ -73,7 +73,7 @@
     - configuration
 
 - name: "configure csh profile"
-  become: yes
+  become: true
   template:
     src: templates/z00_lmod.csh
     dest: /etc/profile.d
@@ -85,7 +85,7 @@
 
 # https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=891541
 - name: "bugfix for lmod posix_c"
-  become: yes
+  become: true
   register: lmod_bugfix_posix
   file:
     src: "/usr/lib/x86_64-linux-gnu/lua/{{ item }}/posix_c.so"
@@ -94,7 +94,7 @@
     group: "root"
     state: "link"
     force: true
-  when: 
+  when:
     - ansible_distribution == 'Ubuntu'
     - ansible_distribution_version == '18.04'
   with_items:
@@ -103,28 +103,28 @@
     - "5.3"
 
 - name: "unset previous lmod setup"
-  shell: unset MODULEPATH_ROOT  # noqa command-instead-of-shell
+  shell: unset MODULEPATH_ROOT # noqa command-instead-of-shell
   register: unset_lmod_bash
   args:
     executable: /bin/bash
   changed_when: unset_lmod_bash.rc != 0
 
 - name: "unset previous lmod setup"
-  shell: unsetenv MODULEPATH_ROOT  # noqa command-instead-of-shell
+  shell: unsetenv MODULEPATH_ROOT # noqa command-instead-of-shell
   register: unset_lmod_csh
   args:
     executable: /bin/csh
   changed_when: unset_lmod_csh.rc != 0
 
 - name: "auto load lmod"
-  shell: . /etc/profile.d/z00_lmod.sh  # noqa command-instead-of-shell
+  shell: . /etc/profile.d/z00_lmod.sh # noqa command-instead-of-shell
   register: load_lmod_bash
   args:
     executable: /bin/bash
   changed_when: load_lmod_bash.rc != 0
 
 - name: "auto load lmod "
-  shell: source /etc/profile.d/z00_lmod.csh  # noqa command-instead-of-shell
+  shell: source /etc/profile.d/z00_lmod.csh # noqa command-instead-of-shell
   register: load_lmod_csh
   args:
     executable: /bin/csh

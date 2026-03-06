@@ -22,10 +22,10 @@
 
 - name: delete temporary user
   user:
-     name: "{{ tmp_user }}"
-     state: absent
-     remove: yes
-     force: yes
+    name: "{{ tmp_user }}"
+    state: absent
+    remove: true
+    force: true
 
 - name: create temporary user
   user:
@@ -48,7 +48,7 @@
   lineinfile:
     path: /etc/localusers
     line: "{{ tmp_user }}"
-    create: yes
+    create: true
     mode: "0644"
 
 - name: move each user
@@ -73,7 +73,7 @@
 
 - name: delete temporary user
   user:
-     name: "{{ tmp_user }}"
-     state: absent
-     remove: yes
-     force: yes
+    name: "{{ tmp_user }}"
+    state: absent
+    remove: true
+    force: true

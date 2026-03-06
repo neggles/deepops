@@ -1,7 +1,7 @@
 # {{ ansible_managed }}
 
 # Check number of CPU cores
- {{ ansible_hostname }} || check_hw_cpuinfo {{ ansible_local.topology.cpu_topology.sockets }} {{ ansible_local.topology.cpu_topology.physical_cores }} {{ ansible_local.topology.cpu_topology.logical_cpus }}
+ {{ ansible_hostname }} || check_hw_cpuinfo {{ ansible_local.topology.cpu_topology.num_sockets }} {{ ansible_local.topology.cpu_topology.physical_cores }} {{ ansible_local.topology.cpu_topology.logical_cpus }}
 
 # Check memory
  {{ ansible_hostname }} || check_hw_physmem {{ (ansible_memtotal_mb * 0.95) | round | int }}m {{ (ansible_memtotal_mb * 1.05) | round | int }}m

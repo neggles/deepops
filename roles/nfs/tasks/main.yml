@@ -3,10 +3,10 @@
   include_vars: "{{ item }}"
   with_first_found:
     - files:
-      - "{{ ansible_distribution|lower }}.yml"
-      - "{{ ansible_os_family|lower }}.yml"
+        - "{{ ansible_distribution|lower }}.yml"
+        - "{{ ansible_os_family|lower }}.yml"
       paths:
-      - ../vars
+        - ../vars
       skip: true
   tags:
     - vars
@@ -34,7 +34,7 @@
     regexp: "^Domain"
     insertafter: "^# Domain"
     line: "Domain = {{ nfs_idmapd_domain }}"
-    backup: yes
+    backup: true
   when: nfs_idmapd_domain is defined
   tags:
     - nfs

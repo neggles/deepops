@@ -5,7 +5,7 @@
     state: present
 
 - name: RedHat | add epel repo
-  become: yes
+  become: true
   yum:
     name:
       - "{{ epel_package }}"

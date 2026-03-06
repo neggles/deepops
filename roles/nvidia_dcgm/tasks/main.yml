@@ -21,25 +21,25 @@
 
 - name: Populate service facts
   tags:
-  - molecule-notest
+    - molecule-notest
   service_facts:
 
 - name: Start the nvidia-dcgm service when present (preferred)
   systemd:
-    daemon_reload: yes
+    daemon_reload: true
     name: "nvidia-dcgm.service"
     state: "started"
     enabled: true
   when: '"nvidia-dcgm.service" in services'
   tags:
-  - molecule-notest
+    - molecule-notest
 
 - name: Start the dcgm service otherwise
   systemd:
-    daemon_reload: yes
+    daemon_reload: true
     name: "dcgm.service"
     state: "started"
     enabled: true
   when: '"nvidia-dcgm.service" not in services'
   tags:
-  - molecule-notest
+    - molecule-notest

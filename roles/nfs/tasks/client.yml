@@ -1,10 +1,10 @@
 ---
 - name: ensure mountpoint exists
   file:
-    path: '{{ item.mountpoint }}'
+    path: "{{ item.mountpoint }}"
     state: directory
     mode: "0755"
-  with_items: '{{ nfs_mounts }}'
+  with_items: "{{ nfs_mounts }}"
   when: nfs_mounts|length
   tags:
     - nfs
@@ -14,9 +14,9 @@
     name: "{{ item.mountpoint }}"
     src: "{{ item.server }}:{{ item.path }}"
     opts: "{{ item.options }}"
-    fstype: nfs 
+    fstype: nfs
     state: mounted
-  with_items: '{{ nfs_mounts }}'
+  with_items: "{{ nfs_mounts }}"
   when: nfs_mounts|length
   tags:
     - nfs
@@ -36,6 +36,6 @@
 - name: rhel | enable nfs home directory usage
   seboolean:
     name: "use_nfs_home_dirs"
-    state: yes
-    persistent: yes
+    state: true
+    persistent: true
   when: ansible_os_family == "RedHat"

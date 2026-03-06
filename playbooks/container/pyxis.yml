@@ -17,7 +17,7 @@
 
 - name: Configure enroot on all nodes
   hosts: slurm-cluster
-  become: yes
+  become: true
   tasks:
     - name: Set enroot DGX config fact
       ansible.builtin.set_fact:
@@ -26,12 +26,12 @@
 
 - name: Set up enroot on compute nodes
   hosts: slurm-node
-  become: yes
+  become: true
   roles:
     - name: nvidia.enroot
 
 - name: Set up pyxis on all nodes
   hosts: slurm-cluster
-  become: yes
+  become: true
   roles:
     - name: pyxis

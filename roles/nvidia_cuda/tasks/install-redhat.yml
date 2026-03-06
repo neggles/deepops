@@ -5,9 +5,9 @@
     state: present
 
 - name: RedHat | add epel repo
-  become: yes
+  become: true
   yum:
-    name: 
+    name:
       - "{{ epel_package }}"
     state: present
   environment: "{{ proxy_env if proxy_env is defined else {} }}"

@@ -1,5 +1,5 @@
 - name: Install NVIDIA GDRCopy
   hosts: slurm-node
-  become: yes
+  become: true
   roles:
     - nvidia_gdrcopy

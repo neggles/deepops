@@ -2,14 +2,17 @@
 # install software modules using EasyBuild.
 #
 ---
-- hosts: all
+- name: Install Lmod on all hosts
+  hosts: all
   roles:
-    - name: lmod
+    - role: lmod
 
-- hosts: slurm-master[0]
+- name: Build easybuild modules on master node
+  hosts: slurm-master[0]
   roles:
-    - name: easy-build
+    - role: easy-build
 
-- hosts: slurm-master
+- name: Install software modules on master node
+  hosts: slurm-master[0]
   roles:
-    - name: easy-build-packages
+    - role: easy-build-packages

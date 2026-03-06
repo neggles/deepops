@@ -4,7 +4,7 @@
 
 - name: Install prometheus
   hosts: "{{ hostlist | default('all') }}"
-  become: yes
+  become: true
   tasks:
     - name: Configure prometheus
       ansible.builtin.include_role:

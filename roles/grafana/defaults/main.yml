@@ -5,7 +5,7 @@ grafana_user_id: 472
 grafana_container: "grafana/grafana:8.5.10"
 grafana_svc_name: "docker.grafana.service"
 grafana_state: started
-grafana_enabled: yes
+grafana_enabled: true
 
 grafana_cfg_user: admin
 grafana_cfg_pass: deepops

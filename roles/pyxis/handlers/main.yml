@@ -26,5 +26,5 @@
   ansible.builtin.service:
     name: systemd-logind.service
     state: restarted
-    enabled: yes
+    enabled: true
   when: is_compute
