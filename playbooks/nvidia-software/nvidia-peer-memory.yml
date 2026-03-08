@@ -2,5 +2,6 @@
 - name: Install NVIDIA Peer Memory
   hosts: "{{ hostlist | default('all') }}"
   become: true
+  environment: "{{proxy_env if proxy_env is defined else{}}}"
   roles:
-    - nvidia-peer-memory
+    - role: nvidia-peer-memory

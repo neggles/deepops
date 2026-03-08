@@ -75,11 +75,11 @@ This provides a level of isolation between user activity and the Slurm cluster s
 Multiple login nodes may also be deployed to allow you to provide services to a larger number of users, or for high availability.
 
 Separate login nodes may be configured in the inventory file using the `slurm-login` group.
-Replace the following section, which adds the `slurm-master` hosts to `slurm-login` by default:
+Replace the following section, which adds the `slurm-controller` hosts to `slurm-login` by default:
 
 ```
 [slurm-login:children]
-slurm-master
+slurm-controller
 ```
 
 With a list of login nodes:
@@ -97,14 +97,14 @@ This should be the name of an Ansible inventory hostgroup with one node.
 In the default configuration, we run the monitoring services on the Slurm controller node.
 
 Note that in order to correctly monitor Slurm, the monitoring node must have Slurm installed and have access to the cluster.
-As with the login nodes, the easiest way to do this is to add the monitoring node to the `slurm-cluster` group, but not to `slurm-master` or `slurm-node`.
+As with the login nodes, the easiest way to do this is to add the monitoring node to the `slurm-cluster` group, but not to `slurm-controller` or `slurm-node`.
 
 Separate monitoring nodes may be configured in the inventory file using the `slurm-metric` group.
 Replace this section:
 
 ```
 [slurm-metric:children]
-slurm-master
+slurm-controller
 ```
 
 With a list of monitoring nodes:
@@ -119,13 +119,13 @@ metric02
 
 Our Slurm cluster deployment relies on a shared NFS filesystem across the cluster.
 One machine is used to run the NFS server, and all other machines in the cluster are NFS clients.
-By default, the NFS server is the first host in the `slurm-master` group.
+By default, the NFS server is the first host in the `slurm-controller` group.
 
 To change this topology, you can use the `slurm-nfs` and `slurm-nfs-client` host groups.
 For example, to specify a separate NFS server from the cluster head node, change this:
 
 ```
-# Where login01 is also a member of slurm-master
+# Where login01 is also a member of slurm-controller
 [slurm-nfs]
 login01
 
@@ -140,6 +140,6 @@ To this:
 nfs01
 
 [slurm-nfs-client:children]
-slurm-master
+slurm-controller
 slurm-node
 ```

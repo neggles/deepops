@@ -4,8 +4,8 @@ hosts_network_interface: "eth1"
 
 # Ensure vagrant user has SSH access after pam_slurm for debugging
 slurm_allow_ssh_user:
-- "vagrant"
-- "root"
+  - "vagrant"
+  - "root"
 
 # Perform cleanup tasks during the install to minimize disk space impact
 hpcsdk_clean_up_tarball_after_extract: true
@@ -13,4 +13,4 @@ hpcsdk_clean_up_temp_dir: true
 slurm_build_dir_cleanup: false
 
 # Ensure we use the slurm management node for syslog
-rsyslog_client_tcp_host: "{{ groups['slurm-master'][0] }}"
+rsyslog_client_tcp_host: "{{ groups['slurm-controller'][0] }}"

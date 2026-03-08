@@ -11,5 +11,5 @@
       ansible.builtin.command: nvidia-smi -acp UNRESTRICTED
       changed_when: false
       when:
-        - ansible_local['gpus']['count'] > 0
+        - ansible_local['gpus']['count'] | bool | default(false)
   environment: "{{proxy_env if proxy_env is defined else{}}}"

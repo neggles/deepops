@@ -40,6 +40,11 @@ slurm_ha_state_save_location: "/sw/slurm"
 #slurm_gres_conf_template: "/path/to/gres.conf"
 #slurm_dbd_conf_template: "/path/to/slurmdbd.conf"
 
+# vars used to identify specific node roles later
+first_login_host: "{{ groups['slurm-login'].0 }}"
+is_first_login: "{{ groups['slurm-login'].0 == inventory_hostname }}"
+is_first_controller: "{{ groups['slurm-controller'].0 == inventory_hostname }}"
+
 ################################################################################
 # Login on compute
 ################################################################################
@@ -81,11 +86,11 @@ nfs_exports:
     options: "*(rw,sync,no_root_squash)"
 nfs_mounts:
   - mountpoint: /home
-    server: '{{ groups["slurm-master"][0] }}'
+    server: '{{ groups["slurm-controller"][0] }}'
     path: /home
     options: async,vers=3
   - mountpoint: /sw
-    server: '{{ groups["slurm-master"][0] }}'
+    server: '{{ groups["slurm-controller"][0] }}'
     path: /sw
     options: async,vers=3
 
@@ -96,8 +101,8 @@ slurm_enable_nfs_server: true
 slurm_enable_nfs_client_nodes: true
 
 # Inventory host groups to use for NFS server or clients
-nfs_server_group: "slurm-master[0]"
-nfs_client_group: "slurm-master[1:],slurm-node"
+nfs_server_group: "slurm-controller[0]"
+nfs_client_group: "slurm-controller[1:],slurm-node"
 
 # Flags for sharing slurm.conf among compute and control nodes
 slurm_conf_symlink: false
@@ -129,7 +134,7 @@ spack_default_packages:
   - "openmpi@3.1.6 +cuda +pmi schedulers=auto"
 
 # Which host should we run installs on for software going into the NFS share?
-sm_install_host: "slurm-master[0]"
+sm_install_host: "slurm-controller[0]"
 
 ################################################################################
 # NVIDIA HPC SDK                                                               #
@@ -222,8 +227,8 @@ slurm_health_check_program: "/usr/sbin/nhc"
 # Container registry                                                           #
 ################################################################################
 slurm_enable_container_registry: true
-docker_insecure_registries: "{{ groups['slurm-master'] | map('regex_replace', '^(.*)$', '\\1:5000') | list + ['registry.local:31500'] }}"
-docker_registry_mirrors: "{{ groups['slurm-master'] | map('regex_replace', '^(.*)$', 'http://\\1:5000') | list }}"
+docker_insecure_registries: "{{ groups['slurm-controller'] | map('regex_replace', '^(.*)$', '\\1:5000') | list + ['registry.local:31500'] }}"
+docker_registry_mirrors: "{{ groups['slurm-controller'] | map('regex_replace', '^(.*)$', 'http://\\1:5000') | list }}"
 
 ################################################################################
 # Monitoring stack                                                             #
@@ -232,13 +237,13 @@ slurm_enable_monitoring: true
 
 # Inventory host groups where cluster monitoring services will be installed
 # (Prometheus, Grafana, etc)
-slurm_monitoring_group: "slurm-master"
+slurm_monitoring_group: "slurm-controller"
 
 ################################################################################
 # Logging with rsyslog                                                         #
 ################################################################################
 slurm_enable_rsyslog_server: true
 slurm_enable_rsyslog_client: true
-rsyslog_server_hostname: "{{ groups['slurm-master'][0] }}"
+rsyslog_server_hostname: "{{ groups['slurm-controller'][0] }}"
 rsyslog_client_tcp_host: "{{ rsyslog_server_hostname }}"
 rsyslog_client_group: "slurm-cluster"

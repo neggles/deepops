@@ -2,6 +2,7 @@
 - name: Install nvidia-docker
   hosts: "{{ hostlist | default('all') }}"
   become: true
+  environment: "{{ proxy_env if proxy_env is defined else {} }}"
   tags:
     - nvidia
     - nvidia_docker
@@ -9,18 +10,18 @@
     - name: Install custom facts module
       ansible.builtin.include_role:
         name: facts
-      when: docker_install | default('yes')
+      when: docker_install | default(true)
 
     - name: Remove docker overrides, specifically to deal with conflicting options from DGX OS
       ansible.builtin.file:
         path: /etc/systemd/system/docker.service.d/docker-override.conf
         state: absent
-      when: docker_install | default('yes')
+      when: docker_install | default(true)
 
     - name: Install nvidia-docker
       ansible.builtin.include_role:
         name: nvidia.nvidia_docker
       when:
-        - ansible_local['gpus']['count'] and (ansible_distribution == "Ubuntu" or ansible_os_family == "RedHat")
+        - ansible_local['gpus']['count'] | bool | default(false)
+        - ansible_distribution == "Ubuntu" or ansible_os_family == "RedHat"
         - docker_install | default('yes')
-  environment: "{{ proxy_env if proxy_env is defined else {} }}"

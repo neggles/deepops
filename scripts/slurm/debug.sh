@@ -13,29 +13,29 @@ mkdir -p ${logdir}
 
 # Provisioner configuration (specific to DeepOps deployments)
 cp config/inventory ${logdir}
-git branch > ${logdir}/git-branch.log
-git status > ${logdir}/git-status.log
-git diff > ${logdir}/git-diff.log
-git log --pretty=oneline | head -n 20 > ${logdir}/git-log.log
+git branch >${logdir}/git-branch.log
+git status >${logdir}/git-status.log
+git diff >${logdir}/git-diff.log
+git log --pretty=oneline | head -n 20 >${logdir}/git-log.log
 
 # GPU configuration
-ansible slurm-node -ba "nvidia-smi" -vv > ${logdir}/nvidia-smi.log
-ansible slurm-node -ba "cat /etc/nvidia/gridd.conf" -vv > ${logdir}/vgpu-gridd.conf.log
+ansible slurm-node -ba "nvidia-smi" -vv >${logdir}/nvidia-smi.log
+ansible slurm-node -ba "cat /etc/nvidia/gridd.conf" -vv >${logdir}/vgpu-gridd.conf.log
 
 # Docker configuration
-ansible slurm-node -ba "docker info" -vv > ${logdir}/docker-info.log
-ansible slurm-node -ba "docker ps -a" -vv > ${logdir}/docker-ps.log
-ansible slurm-node -ba "cat /etc/docker/daemon.json" -vv > ${logdir}/docker-daemon.log
+ansible slurm-node -ba "docker info" -vv >${logdir}/docker-info.log
+ansible slurm-node -ba "docker ps -a" -vv >${logdir}/docker-ps.log
+ansible slurm-node -ba "cat /etc/docker/daemon.json" -vv >${logdir}/docker-daemon.log
 
 # Login node debug
-ansible slurm-master -ba "srun --mpi=list" -vv > ${logdir}/srun.log
-ansible slurm-master -ba "scontrol ping" -vv > ${logdir}/scontrol.log
-ansible slurm-master -ba "sinfo" -vv > ${logdir}/sinfo.log
-ansible slurm-master -ba "squeue" -vv > ${logdir}/squeue.log
+ansible slurm-controller -ba "srun --mpi=list" -vv >${logdir}/srun.log
+ansible slurm-controller -ba "scontrol ping" -vv >${logdir}/scontrol.log
+ansible slurm-controller -ba "sinfo" -vv >${logdir}/sinfo.log
+ansible slurm-controller -ba "squeue" -vv >${logdir}/squeue.log
 
 # DCGM example output / metrics
 # Collect metrics from all nodes for debug
-ansible slurm-node -vv -bm raw -a "curl http://127.0.0.1:9400/metrics" > ${logdir}/dcgm-metrics.log
+ansible slurm-node -vv -bm raw -a "curl http://127.0.0.1:9400/metrics" >${logdir}/dcgm-metrics.log
 
 # Packaging
 name="config/slurm-debug-${timestamp}.tgz"

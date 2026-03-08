@@ -4,8 +4,8 @@ hosts_network_interface: "eth1"
 
 # Ensure vagrant user has SSH access after pam_slurm for debugging
 slurm_allow_ssh_user:
-- "vagrant"
-- "root"
+  - "vagrant"
+  - "root"
 
 # Perform cleanup tasks during the install to minimize disk space impact
 hpcsdk_clean_up_tarball_after_extract: true
@@ -40,7 +40,7 @@ slurm_monitoring_group: "slurm-metric"
 
 # Configure NFS
 nfs_server_group: "slurm-nfs"
-nfs_client_group: "slurm-master,slurm-node,slurm-login,slurm-metric"
+nfs_client_group: "slurm-controller,slurm-node,slurm-login,slurm-metric"
 nfs_mounts:
   - mountpoint: /home
     server: '{{ groups["slurm-nfs"][0] }}'

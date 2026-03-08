@@ -1,6 +1,6 @@
 ---
 - name: Configure Pyxis on controller nodes
-  hosts: slurm-master
+  hosts: slurm-controller
   tasks:
     - name: Set controller fact
       ansible.builtin.set_fact:

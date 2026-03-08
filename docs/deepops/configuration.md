@@ -63,13 +63,13 @@ my-cluster-compute-02      ansible_host=10.0.0.3
 If you don't want this, you can set `deepops_set_hostname: false` using the instructions in [the next section](#modifying-ansible-variables).)
 
 The example DeepOps inventory also includes groups for the different components of Kubernetes clusters (`kube-master`, `etcd`, and `kube-node`),
-and groups for the different components of Slurm clusters (`slurm-master` and `slurm-node`).
+and groups for the different components of Slurm clusters (`slurm-controller` and `slurm-node`).
 These groups are used by DeepOps to determine which playbooks run on which nodes for each type of cluster,
 and you should add nodes to these groups based on how you want to lay out your cluster.
 For example:
 
 ```bash
-[slurm-master]
+[slurm-controller]
 my-cluster-controller
 
 [slurm-node]

@@ -17,7 +17,7 @@ When [deploying slurm with the slurm-cluster.yml playbook](README.md), setting t
 
 ## Access
 
-Once deployed, Open OnDemand (OOD) may be accessed via browser at http://<slurm-master>:9050/. Login credentials:
+Once deployed, Open OnDemand (OOD) may be accessed via browser at http://<slurm-controller>:9050/. Login credentials:
 
 User: _the user that ran the ansible playbook_\
 Password: deepops

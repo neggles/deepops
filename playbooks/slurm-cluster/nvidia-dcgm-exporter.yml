@@ -19,7 +19,7 @@
     - name: Set GPU facts
       ansible.builtin.set_fact:
         has_gpus: true
-      when: ansible_local['gpus']['count'] > 0 | default(false)
+      when: ansible_local['gpus']['count'] | bool | default(false)
 
     - name: Configure DCGM exporter
       ansible.builtin.import_role:

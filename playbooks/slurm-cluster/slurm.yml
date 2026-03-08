@@ -33,7 +33,7 @@
       tags: always
 
 - name: Set is_controller fact on controller nodes
-  hosts: slurm-master
+  hosts: slurm-controller
   tasks:
     - name: Set controller fact
       ansible.builtin.set_fact:
@@ -60,7 +60,7 @@
         slurm_workflow_build: false
 
 - name: Set up slurm-login-on-compute if enabled
-  hosts: slurm-master
+  hosts: slurm-controller
   become: true
   tasks:
     - name: Setup slurm login on compute if enabled.

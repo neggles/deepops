@@ -46,14 +46,14 @@ Instructions for deploying a GPU cluster with Slurm
 
    ```bash
    # Edit inventory
-   # Add Slurm controller/login host to `slurm-master` group
+   # Add Slurm controller/login host to `slurm-controller` group
    # Add Slurm worker/compute hosts to the `slurm-node` groups
    vi config/inventory
 
    # (optional) Modify `config/group_vars/*.yml` to set configuration parameters
    ```
 
-   > Note: Multiple hosts can be added to the `slurm-master` group for high-availability. You must also set
+   > Note: Multiple hosts can be added to the `slurm-controller` group for high-availability. You must also set
    > `slurm_enable_ha: true` in `config/group_vars/slurm-cluster.yml`. For more information about HA Slurm deployments,
    > see: https://slurm.schedmd.com/quickstart_admin.html#HA
 
@@ -208,8 +208,8 @@ As part of the Slurm installation, Grafana and Prometheus are both deployed.
 
 The services can be reached from the following addresses:
 
-- Grafana: http://\<slurm-master\>:3000
-- Prometheus: http://\<slurm-master\>:9090
+- Grafana: http://\<slurm-controller\>:3000
+- Prometheus: http://\<slurm-controller\>:9090
 
 ## Centralized syslog
 

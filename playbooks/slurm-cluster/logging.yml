@@ -1,5 +1,5 @@
 ---
-- hosts: slurm-master[0]
+- hosts: slurm-controller[0]
   become: true
   vars:
     elasticsearch_network_host: 0.0.0.0
@@ -15,7 +15,7 @@
     - robertdebock.logstash
     - robertdebock.kibana
 
-- hosts: slurm-master[0]
+- hosts: slurm-controller[0]
   become: true
   vars:
     filebeat_port: "5000"
@@ -30,7 +30,7 @@
 
 # Mitigation for CVE-2021-44228 impacting Log4j2
 # https://discuss.elastic.co/t/apache-log4j2-remote-code-execution-rce-vulnerability-cve-2021-44228-esa-2021-31/291476
-- hosts: slurm-master[0]
+- hosts: slurm-controller[0]
   become: true
   tasks:
     - name: configure elasticsearch to mitigate CVE-2021-44228
@@ -81,6 +81,6 @@
           - "/var/log/slurm/*.log"
           - "/var/log/apt/*.log"
     filebeat_output_logstash_hosts:
-      - "{{ groups['slurm-master'][0] }}:5000"
+      - "{{ groups['slurm-controller'][0] }}:5000"
   roles:
     - geerlingguy.filebeat

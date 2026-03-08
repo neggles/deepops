@@ -2,12 +2,16 @@
 # 'cuda-toolkit' is the generic package and will pull the latest version
 # if you want a specific version, use i.e. cuda-toolkit=12.2.0-1
 cuda_version: cuda-toolkit
-
+# extra cuda versions to install; `cuda_version` will be set as default via update-alternatives
+cuda_version_extra: []
 # DGX-specific vars may be used to target specific models,
 # because available versions for DGX may differ from the generic repo
 cuda_dgx_1_version: "{{ cuda_version }}"
 cuda_dgx_2_version: "{{ cuda_version }}"
 cuda_dgx_a100_version: "{{ cuda_version }}"
+cuda_dgx_h100_version: "{{ cuda_version }}"
+cuda_dgx_h200_version: "{{ cuda_version }}"
+cuda_dgx_b200_version: "{{ cuda_version }}"
 
 # To install a specific CUDA package on DGX, define cuda_dgx_override.
 # We override DGX version separately because DGX OS may release at a different
@@ -29,3 +33,7 @@ old_nvidia_driver_ubuntu_cuda_repo_gpgkey_id: "7fa2af80"
 nvidia_driver_ubuntu_cuda_repo_baseurl: "https://developer.download.nvidia.com/compute/cuda/repos/{{ _ubuntu_repo_dir }}"
 nvidia_driver_ubuntu_cuda_keyring_package: "cuda-keyring_1.1-1_all.deb"
 nvidia_driver_ubuntu_cuda_keyring_url: "{{ nvidia_driver_ubuntu_cuda_repo_baseurl }}/{{ nvidia_driver_ubuntu_cuda_keyring_package }}"
+
+# strip out the major/minor versions from the selected cuda toolkit packages
+cuda_version_major: "{{ cuda_version | regex_search('cuda-toolkit-(\\d+)-.*', '\\1') | first }}"
+cuda_version_minor: "{{ cuda_version | regex_search('cuda-toolkit-\\d+-(\\d+)', '\\1') | first }}"

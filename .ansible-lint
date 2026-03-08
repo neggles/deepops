@@ -1,7 +1,7 @@
 ---
 # .ansible-lint
 # skip updating collections
-offline: true
+# offline: true
 # enable default rules
 use_default_rules: true
 # disable some other rules that deepops doesn't follow
@@ -12,7 +12,6 @@ skip_list:
   - risky-shell-pipe # we always set -euo pipefail
   - var-naming[no-role-prefix] # deepops roles don't always follow this
   - role-name[path] # or this
-  - yaml
   - name[casing] # too many of these to be worth fixing
 
 warn_list:

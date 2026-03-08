@@ -8,11 +8,11 @@
     - role: lmod
 
 - name: Build easybuild modules on master node
-  hosts: slurm-master[0]
+  hosts: slurm-controller[0]
   roles:
     - role: easy-build
 
 - name: Install software modules on master node
-  hosts: slurm-master[0]
+  hosts: slurm-controller[0]
   roles:
     - role: easy-build-packages

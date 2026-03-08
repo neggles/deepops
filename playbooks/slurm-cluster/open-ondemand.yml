@@ -1,6 +1,6 @@
 ---
 - name: Install Open OnDemand server on master node
-  hosts: slurm-master[0]
+  hosts: slurm-controller[0]
   become: true
   roles:
     - role: ood-wrapper

@@ -50,7 +50,7 @@ The general requirements and procedure for Slurm setup via deepops is documented
    [all]
    gpu01    ansible_host=10.31.241.198
 
-   [slurm-master]
+   [slurm-controller]
    gpu01
 
    [slurm-node]
@@ -82,7 +82,7 @@ The general requirements and procedure for Slurm setup via deepops is documented
    gpu01     ansible_host=10.31.241.198
    gpu02     ansible_host=10.31.241.199
 
-   [slurm-master]
+   [slurm-controller]
    gpu01
 
    [slurm-node]
@@ -135,7 +135,7 @@ The general requirements and procedure for Slurm setup via deepops is documented
 
    When deploying on a single node set connection to local. Specify `"--forks=1"`
    so that Ansible does not perform potentially conflicting operations
-   required for a slurm-master and slurm-node in parallel on the same node.
+   required for a slurm-controller and slurm-node in parallel on the same node.
    The `"--forks=1"` option will insure that the installation steps are serial.
 
    ```bash
@@ -165,7 +165,7 @@ The general requirements and procedure for Slurm setup via deepops is documented
    when prompted and then run Ansible again.
 
    Setting `slurm_login_on_compute` to true, the slurm-cluster playbook will
-   restrict GPUs in ssh sessions on the slurm-master by running the following
+   restrict GPUs in ssh sessions on the slurm-controller by running the following
    command:
 
    ```bash

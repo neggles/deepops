@@ -2,8 +2,9 @@
 # Install NVIDIA CUDA (and driver if present)
 
 - name: Install NVIDIA CUDA (and driver if present)
-  hosts: all
+  hosts: "{{ hostlist | default('all') }}"
   become: true
+  environment: "{{ proxy_env if proxy_env is defined else{} }}"
   tasks:
     - name: Check for DGX packages
       ansible.builtin.stat:
@@ -18,9 +19,9 @@
       ansible.builtin.include_role:
         name: nvidia.nvidia_driver
       when:
-        - ansible_local['gpus']['count']
+        - ansible_local['gpus']['count'] | bool | default(false)
         - is_dgx.stat.exists is False
-        - cuda_playbook_install_driver|default(true)
+        - cuda_playbook_install_driver | default(true)
       tags:
         - nvidia_driver
 
@@ -32,8 +33,7 @@
       ansible.builtin.command: nvidia-smi
       changed_when: false
       when:
-        - ansible_local['gpus']['count']
-        - cuda_playbook_install_driver|default(true)
+        - ansible_local['gpus']['count'] | bool | default(false)
+        - cuda_playbook_install_driver | default(true)
       tags:
         - nvidia_driver
-  environment: "{{ proxy_env if proxy_env is defined else{} }}"

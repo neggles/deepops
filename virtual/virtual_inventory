@@ -26,13 +26,13 @@ virtual-mgmt01
 virtual-gpu01
 
 [k8s-cluster:children]
-kube-master 	 
-kube-node 	 
+kube-master
+kube-node
 
 ######
 # SLURM
 ######
-[slurm-master]
+[slurm-controller]
 virtual-login01
 
 [slurm-nfs]
@@ -46,20 +46,20 @@ virtual-gpu01
 # node. To break these out into different nodes, replace the
 # [group:children] section with [group], and list individual nodes.
 [slurm-cache:children]
-slurm-master
+slurm-controller
 
 [slurm-nfs-client:children]
 slurm-node
 
 [slurm-metric:children]
-slurm-master
+slurm-controller
 
 [slurm-login:children]
-slurm-master
+slurm-controller
 
 # Single group for the whole cluster
 [slurm-cluster:children]
-slurm-master
+slurm-controller
 slurm-node
 slurm-cache
 slurm-nfs

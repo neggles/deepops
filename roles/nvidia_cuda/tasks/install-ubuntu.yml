@@ -21,7 +21,32 @@
   environment: "{{ proxy_env if proxy_env is defined else {} }}"
   changed_when: false
 
-- name: Ubuntu | install cuda
+- name: Ubuntu | install default CUDA
   ansible.builtin.package:
     name: "{{ cuda_version }}"
     state: present
+
+- name: Ubuntu | Extra CUDA versions
+  when: (cuda_version_extra | length) > 0
+  block:
+    - name: Ubuntu | Install extra CUDA versions
+      ansible.builtin.package:
+        name: "{{ cuda_version_extra }}"
+        state: present
+
+    - name: Ubuntu | Set default CUDA version
+      community.general.alternatives:
+        name: cuda
+        link: /usr/local/cuda
+        path: "/usr/local/cuda-{{ cuda_version_major }}.{{ cuda_version_minor }}"
+        state: selected
+        priority: "{{ (cuda_version_major ~ cuda_version_minor) | int }}"
+
+- name: Ubuntu | Set default CUDA version
+  community.general.alternatives:
+    name: cuda
+    link: /usr/local/cuda
+    path: "/usr/local/cuda-{{ cuda_version_major }}.{{ cuda_version_minor }}"
+    priority: "{{ (cuda_version_major ~ cuda_version_minor) | int }}"
+    state: auto
+  when: (cuda_version_extra | length) == 0

@@ -7,7 +7,7 @@
 #     -e '{srun_exports: "NCCL_DEBUG=INFO,OMPI_MCA_pml=^ucx,OMPI_MCA_coll=^hcoll,NCCL_SOCKET_IFNAME=enp"}' \
 #     -e '{cleanup: True}'
 - name: Run NCCL validation test on slurm cluster
-  hosts: slurm-master[0]
+  hosts: slurm-controller[0]
 
   vars:
     # String; Container for nccl performance/validation tests. Either docker
@@ -20,7 +20,7 @@
     #   nccl_tests_container (will delete/overwrite if one already exists). If
     #   false assumes nccl_tests_container already has the NCCL tests and uses
     #   the nccl_tests_container.
-    compile_nccl_tests: True
+    compile_nccl_tests: true
     # String; NCCL allreduce test command.
     allreduce_command: "all_reduce_perf -b 1M -e 4G -f 2 -g 1"
     # Int; Number of GPUs per node. DGX-1 and DGX A100 Server have 8 GPUs.
@@ -38,7 +38,7 @@
     num_nodes:
     # Bool; Delete the `nccl_tests_container` after running the playbook, only
     #   if `compile_nccl_tests` is true as well.
-    cleanup: False
+    cleanup: false
 
   tasks:
     - name: Check that NCCL sqsh base container exists when sqsh is specified.
@@ -159,8 +159,7 @@
       ansible.builtin.debug:
         msg:
           - "Detected {{ num_nodes_ }} nodes with {{ num_gpus }} gpus each."
-          - "Proceeding to run validation test, this may take several
-            minutes:\n{{ ncclcmd }}"
+          - "Proceeding to run validation test, this may take several minutes:\n{{ ncclcmd }}"
 
     - name: Run NCCL allreduce test
       block:

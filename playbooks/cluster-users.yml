@@ -1,10 +1,11 @@
+---
 - name: Update cluster users
   hosts: all
   become: true
   vars_files:
     - "{{ inventory_dir }}/vars/users.yml"
   vars:
-    shared_home_root: "{{ shared_home_root | default('/mnt/weka/home') }}"
+    shared_home_root: "{{ shared_home_root | default(shared_fs_root ~ '/home') }}"
     user_defaults:
       is_active: true
       is_admin: false

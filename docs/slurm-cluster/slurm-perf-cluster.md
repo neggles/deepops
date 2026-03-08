@@ -86,7 +86,7 @@ These packages have been installed and tested with the following Linux distribut
 
    ...
 
-   [slurm-master]
+   [slurm-controller]
    login-node
 
    [slurm-node]

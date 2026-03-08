@@ -95,7 +95,7 @@ dgx01
 ######
 # SLURM
 ######
-[slurm-master]
+[slurm-controller]
 login01
 
 [slurm-nfs]
@@ -105,20 +105,20 @@ login01
 dgx01
 
 [slurm-cache:children]
-slurm-master
+slurm-controller
 
 [slurm-nfs-client:children]
 slurm-node
 
 [slurm-metric:children]
-slurm-master
+slurm-controller
 
 [slurm-login:children]
-slurm-master
+slurm-controller
 
 # Single group for the whole cluster
 [slurm-cluster:children]
-slurm-master
+slurm-controller
 slurm-node
 slurm-cache
 slurm-nfs

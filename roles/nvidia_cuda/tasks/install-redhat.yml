@@ -24,3 +24,28 @@
   ansible.builtin.package:
     name: "{{ cuda_version }}"
     state: present
+
+- name: RedHat | Extra CUDA versions
+  when: (cuda_version_extra | length) > 0
+  block:
+    - name: RedHat | Install extra CUDA versions
+      ansible.builtin.package:
+        name: "{{ cuda_version_extra }}"
+        state: present
+
+    - name: RedHat | Set default CUDA version
+      community.general.alternatives:
+        name: cuda
+        link: /usr/local/cuda
+        path: "/usr/local/cuda-{{ cuda_version_major }}.{{ cuda_version_minor }}"
+        state: selected
+        priority: "{{ (cuda_version_major ~ cuda_version_minor) | int }}"
+
+- name: RedHat | Set default CUDA version
+  community.general.alternatives:
+    name: cuda
+    link: /usr/local/cuda
+    path: "/usr/local/cuda-{{ cuda_version_major }}.{{ cuda_version_minor }}"
+    priority: "{{ (cuda_version_major ~ cuda_version_minor) | int }}"
+    state: auto
+  when: (cuda_version_extra | length) == 0

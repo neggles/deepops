@@ -1,20 +1,27 @@
 ---
-- name: check if we are running on DGX
+- name: Check if we are running on DGX
   ansible.builtin.stat:
     path: "/etc/dgx-release"
   register: is_dgx
 
 - name: DGX install tasks
-  ansible.builtin.include_tasks: install-dgx.yml
+  ansible.builtin.include_tasks:
+    file: install-dgx.yml
   when: is_dgx.stat.exists | bool
 
-- name: ubuntu install tasks
-  ansible.builtin.include_tasks: install-ubuntu.yml
-  when: (ansible_distribution == "Ubuntu") and (is_dgx.stat.exists is False)
+- name: Ubuntu install tasks
+  ansible.builtin.include_tasks:
+    file: install-ubuntu.yml
+  when:
+    - ansible_distribution == "Ubuntu"
+    - is_dgx.stat.exists is False
 
-- name: redhat family install tasks
-  ansible.builtin.include_tasks: install-redhat.yml
-  when: (ansible_os_family == "RedHat") and (is_dgx.stat.exists is False)
+- name: Redhat family install tasks
+  ansible.builtin.include_tasks:
+    file: install-redhat.yml
+  when:
+    - ansible_os_family == "RedHat"
+    - is_dgx.stat.exists is False
 
 - name: add profile script to set environment for toolkit
   ansible.builtin.copy:

@@ -10,39 +10,39 @@ platforms:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     command: /sbin/init
     tmpfs:
-    - /run
-    - /tmp
+      - /run
+      - /tmp
     pre_build_image: true
     privileged: true
     groups:
-    - slurm-master
-    - slurm-node
+      - slurm-controller
+      - slurm-node
   - name: slurm-ubuntu-2004
     image: geerlingguy/docker-ubuntu2004-ansible
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     command: /sbin/init
     tmpfs:
-    - /run
-    - /tmp
+      - /run
+      - /tmp
     pre_build_image: true
     privileged: true
     groups:
-    - slurm-master
-    - slurm-node
+      - slurm-controller
+      - slurm-node
   - name: slurm-centos-7
     image: geerlingguy/docker-centos7-ansible
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
     command: /sbin/init
     tmpfs:
-    - /run
-    - /tmp
+      - /run
+      - /tmp
     pre_build_image: true
     privileged: true
     groups:
-    - slurm-master
-    - slurm-node
+      - slurm-controller
+      - slurm-node
 #  - name: slurm-centos-8
 #    image: geerlingguy/docker-centos8-ansible
 #    volumes:
@@ -54,7 +54,7 @@ platforms:
 #    pre_build_image: true
 #    privileged: true
 #    groups:
-#    - slurm-master
+#    - slurm-controller
 #    - slurm-node
 
 # Note: Molecule tests do not use NVML because the Github runner can't handle
@@ -66,6 +66,6 @@ provisioner:
       all:
         slurm_autodetect_nvml: false
   ansible_args:
-  - -vv
+    - -vv
 verifier:
   name: ansible

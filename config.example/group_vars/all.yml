@@ -1,6 +1,7 @@
-################################################################################
+---
+# ###############################################################################
 # DeepOps Ansible Config                                                       #
-################################################################################
+# ###############################################################################
 #
 # Configuration common to all hosts
 # Define per-group or per-host values in the other configuration files
@@ -88,7 +89,7 @@ deepops_set_hostname: true
 # Playbook: nfs-client.yml
 #nfs_mounts:
 #  - mountpoint: /mnt/shared
-#    server: '{{ groups["slurm-master"][0] }}'
+#    server: '{{ groups["slurm-controller"][0] }}'
 #    path: /export/shared
 #    options: async,vers=3
 
@@ -109,11 +110,10 @@ epel_package: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansi
 #     uid: 10007
 #     home: /home/nvidia
 users: []
-
-################################################################################
+# ###############################################################################
 # SSH HARDENING                                                                #
 #   dev-sec.ssh-hardening role called from users playbook                      #
-################################################################################
+# ###############################################################################
 
 ssh_client_hardening: false
 ssh_server_password_login: true
@@ -128,14 +128,20 @@ sftp_chroot: false
 # NVIDIA GPU configuration
 # Playbook: nvidia-cuda
 # Install latest version by default,
-# if you want a specific version, use i.e. cuda-toolkit=12.2.0-1
-# cuda_version: cuda-toolkit
+# if you want a specific version, use i.e. cuda-toolkit-13-0
+cuda_version: cuda-toolkit-13-0
+# extra cuda versions to install, the one selected above will be set as default
+cuda_version_extra:
+  - cuda-toolkit-12-9
 
 # DGX-specific vars may be used to target specific models,
 # because available versions for DGX may differ from the generic repo
-#cuda_dgx_1_version: "{{ cuda_version }}"
-#cuda_dgx_2_version: "{{ cuda_version }}"
-#cuda_dgx_a100_version: "{{ cuda_version }}"
+# cuda_dgx_1_version: "{{ cuda_version }}"
+# cuda_dgx_2_version: "{{ cuda_version }}"
+# cuda_dgx_a100_version: "{{ cuda_version }}"
+# cuda_dgx_h100_version: "{{ cuda_version }}"
+# cuda_dgx_h200_version: "{{ cuda_version }}"
+# cuda_dgx_b200_version: "{{ cuda_version }}"
 
 # Playbook: nvidia-set-gpu-clocks
 # Resets the Gpu clocks to the default values. (see the `--reset-gpu-clocks` flag in nvidia-smi for more)
@@ -145,7 +151,9 @@ gpu_clock_reset: false
 # Input can also be a singular desired clock value. (see the `--lock-gpu-clocks` flag in nvidia-smi for more)
 gpu_clock_lock: "1507,1507"
 
-# Debugging var: force install NVIDIA driver even if GPU not detected
+# whether to attempt the nvidia driver install at all
+nvidia_driver_install: false
+# Debugging var: force install NVIDIA driver even if GPU not detected or the target is a DGX
 nvidia_driver_force_install: false
 
 ################################################################################

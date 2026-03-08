@@ -3,16 +3,34 @@
   ansible.builtin.package:
     name: "{{ cuda_dgx_override_version | default(cuda_dgx_1_version) }}"
     state: present
-  when: ansible_product_name is search("DGX-1")
+  when: "'DGX-1' in ansible_product_name"
 
 - name: DGX | Install CUDA on DGX-2
   ansible.builtin.package:
     name: "{{ cuda_dgx_override_version | default(cuda_dgx_2_version) }}"
     state: present
-  when: ansible_product_name is search("DGX-2")
+  when: "'DGX-2' in ansible_product_name"
 
 - name: DGX | Install CUDA on DGX A100
   ansible.builtin.package:
     name: "{{ cuda_dgx_override_version | default(cuda_dgx_a100_version) }}"
     state: present
-  when: ansible_product_name is search("DGXA100")
+  when: "'DGXA100' in ansible_product_name"
+
+- name: DGX | Install CUDA on DGX H100
+  ansible.builtin.package:
+    name: "{{ cuda_dgx_override_version | default(cuda_dgx_h100_version) }}"
+    state: present
+  when: "'DGXH100' in ansible_product_name"
+
+- name: DGX | Install CUDA on DGX H200
+  ansible.builtin.package:
+    name: "{{ cuda_dgx_override_version | default(cuda_dgx_h200_version) }}"
+    state: present
+  when: "'DGXH200' in ansible_product_name"
+
+- name: DGX | Install CUDA on DGX B200
+  ansible.builtin.package:
+    name: "{{ cuda_dgx_override_version | default(cuda_dgx_b200_version) }}"
+    state: present
+  when: "'DGXB200' in ansible_product_name"

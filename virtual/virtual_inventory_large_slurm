@@ -24,7 +24,7 @@ virtual-nfs01 ansible_host=10.0.0.11 ip=10.0.0.11
 ######
 # SLURM
 ######
-[slurm-master]
+[slurm-controller]
 virtual-wm01
 virtual-wm02
 
@@ -50,7 +50,7 @@ virtual-nfs01
 slurm-node
 
 [slurm-cluster:children]
-slurm-master
+slurm-controller
 slurm-node
 slurm-login
 slurm-metric

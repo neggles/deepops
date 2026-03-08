@@ -1,19 +1,20 @@
 ---
 # Create user with password (defined in config/group_vars/all.yml)
-- hosts: all
+- name: Create user account
+  hosts: all
   become: true
   tasks:
     - name: Set backward compatible values for ssh-hardening if not defined
-      set_fact:
+      ansible.builtin.set_fact:
         ssh_client_hardening: "{{ ssh_client_hardening | default(false) }}"
         ssh_server_password_login: "{{ ssh_server_password_login | default(true) }}"
         ssh_use_pam: "{{ ssh_use_pam | default(true) }}"
         ssh_max_auth_retries: "{{ ssh_max_auth_retries | default(10) }}"
 
     - name: Configure SSH to allow login with password
-      include_role:
+      ansible.builtin.include_role:
         name: dev-sec.ssh-hardening
 
     - name: Set user password
-      include_role:
+      ansible.builtin.include_role:
         name: DeepOps.users
