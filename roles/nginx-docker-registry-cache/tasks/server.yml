@@ -46,7 +46,7 @@
   when: nginx_docker_cache_ca is defined
 
 - name: Run caching proxy
-  ansible.builtin.docker_container:
+  community.docker.docker_container:
     name: "{{ nginx_docker_cache_name }}"
     image: "{{ nginx_docker_cache_image }}"
     state: started

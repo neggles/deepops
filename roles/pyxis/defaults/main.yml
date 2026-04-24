@@ -1,3 +1,4 @@
+---
 slurm_install_pyxis: true
 slurm_install_prefix: /usr/local
 slurm_config_dir: /etc/slurm
@@ -9,10 +10,10 @@ is_compute: false
 is_misc: false
 
 pyxis_ubuntu_deps:
-- "bsdmainutils"
+  - "bsdmainutils"
 
 pyxis_el_deps:
-- "util-linux"
+  - "util-linux"
 
 # /run is default partition of pyxis runtime_path
 resize_run_partition: false

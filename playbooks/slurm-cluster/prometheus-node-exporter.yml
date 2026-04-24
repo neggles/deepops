@@ -7,5 +7,5 @@
   become: true
   tasks:
     - name: Configure Prometheus Node Exporter
-      include_role:
+      ansible.builtin.include_role:
         name: prometheus-node-exporter

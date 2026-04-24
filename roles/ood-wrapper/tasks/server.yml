@@ -141,9 +141,9 @@
     state: absent
   with_items:
     - form.yml
-      #- manifest.yml
-      #- submit.yml.erb
-      #- template/script.sh.erb
+  #- manifest.yml
+  #- submit.yml.erb
+  #- template/script.sh.erb
   tags:
     - configure
 

@@ -1,19 +1,22 @@
-################################################################################
+---
+# ###############################################################################
 # Slurm                                                                        #
-################################################################################
+# ###############################################################################
 # Slurm job scheduler configuration
 # Playbook: slurm, slurm-cluster, slurm-perf, slurm-perf-cluster, slurm-validation
 # slurm_version: ""
 slurm_install_prefix: /usr/local
-pmix_install_prefix: /opt/deepops/pmix
-hwloc_install_prefix: /opt/deepops/hwloc
+pmix_install_prefix: "{{ deepops_dir }}/pmix"
+hwloc_install_prefix: "{{ deepops_dir }}/hwloc"
 #slurm_user_home: /local/slurm
 slurm_manage_gpus: true
 #slurm_cluster_name: deepops
 #slurm_username: slurm
-slurm_password: ReplaceWithASecurePasswordInTheVault
+# you should really use ansible vault for this, not a file in the config dir.
+slurm_password: "{{ lookup('file', '{{ inventory_dir }}/secrets/slurm_password.txt') | trim }}"
 #slurm_db_username: slurm
-slurm_db_password: AlsoReplaceWithASecurePasswordInTheVault
+# you should really use ansible vault for this, not a file in the config dir.
+slurm_db_password: "{{ lookup('file', '{{ inventory_dir }}/secrets/slurm_db_password.txt') | trim }}"
 #slurm_max_job_timelimit: INFINITE
 #slurm_default_job_timelimit:
 
@@ -23,13 +26,12 @@ slurm_autodetect_nvml: true
 
 # Ensure hosts file generation only runs across slurm cluster
 hosts_add_ansible_managed_hosts_groups: ["slurm-cluster"]
-
 # Enable Slurm high-availability mode
 # NOTE: The location for Slurm saved state needs to reside in a location shared by all Slurm controller nodes
 #       Ideally this is on external NFS server and not the primary control node, since its failure
 #       would also take down that NFS share
 slurm_enable_ha: false
-slurm_ha_state_save_location: "/sw/slurm"
+slurm_ha_state_save_location: "{{ shared_fs_root }}/slurm"
 
 # Slurm configuration is auto-generated from templates in the `slurm` role.
 # If you want to override any of these files with custom config files, please
@@ -53,7 +55,6 @@ slurm_restrict_node_access: true
 
 # List users who should always be able to SSH, even without a running job
 slurm_allow_ssh_user: []
-
 # Enable a Slurm compute node to also function as a login node.
 # This is needed for the "single node Slurm cluster" configuration.
 # See docs/slurm-cluster/slurm-single-node.md
@@ -246,4 +247,4 @@ slurm_enable_rsyslog_server: true
 slurm_enable_rsyslog_client: true
 rsyslog_server_hostname: "{{ groups['slurm-controller'][0] }}"
 rsyslog_client_tcp_host: "{{ rsyslog_server_hostname }}"
-rsyslog_client_group: "slurm-cluster"
+rsyslog_client_group: "slurm-node"

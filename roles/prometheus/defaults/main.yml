@@ -1,3 +1,4 @@
+---
 prometheus_config_dir: /etc/prometheus
 prometheus_config_src: templates/prometheus.yml.j2
 prometheus_alert_rules_src: templates/alert_rules.yml.j2

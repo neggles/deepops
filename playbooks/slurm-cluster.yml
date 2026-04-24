@@ -1,163 +1,161 @@
 ---
-# Slurm Cluster Playbook
-
 - name: Install python required for Ansible
-  import_playbook: bootstrap/bootstrap-python.yml
+  ansible.builtin.import_playbook: bootstrap/bootstrap-python.yml
   when: slurm_cluster_do_bootstrap | default(true)
   tags: bootstrap
 
 - name: Set up SSH keys if needed
-  import_playbook: bootstrap/bootstrap-ssh.yml
+  ansible.builtin.import_playbook: bootstrap/bootstrap-ssh.yml
   when: slurm_cluster_do_bootstrap | default(true)
   tags: bootstrap
 
 - name: Set up passwordless sudo if needed
-  import_playbook: bootstrap/bootstrap-sudo.yml
+  ansible.builtin.import_playbook: bootstrap/bootstrap-sudo.yml
   when: slurm_cluster_do_bootstrap | default(true)
   tags: bootstrap
 
 - name: Disable cloud-init
-  import_playbook: generic/disable-cloud-init.yml
+  ansible.builtin.import_playbook: generic/disable-cloud-init.yml
   when: deepops_disable_cloud_init | default(true)
 
 - name: Configure hostnames, /etc/hosts
-  import_playbook: generic/hosts.yml
+  ansible.builtin.import_playbook: generic/hosts.yml
   when: slurm_configure_etc_hosts | default(true)
   tags:
     - set-etc-hosts
 
 - name: Configure Chrony (NTP) sync
-  import_playbook: generic/chrony-client.yml
+  ansible.builtin.import_playbook: generic/chrony-client.yml
   when: chrony_install | default(true)
 
 - name: Set up a local cluster container registry
-  import_playbook: container/standalone-container-registry.yml hostlist=slurm-controller
+  ansible.builtin.import_playbook: container/standalone-container-registry.yml hostlist=slurm-controller
   when: slurm_enable_container_registry | default(true)
 
 - name: Set up NGINX-based container caching | Install docker registry cache server
-  import_playbook: container/nginx-docker-registry-cache-server.yml
+  ansible.builtin.import_playbook: container/nginx-docker-registry-cache-server.yml
   vars:
     hostlist: "{{ nginx_docker_cache_hostgroup | default('slurm-cache') }}"
   when: slurm_enable_nginx_docker_cache | default(false)
 
 - name: Set up NGINX-based container caching | Install docker registry cache client
-  import_playbook: container/nginx-docker-registry-cache-client.yml
+  ansible.builtin.import_playbook: container/nginx-docker-registry-cache-client.yml
   vars:
     hostlist: "{{ nginx_docker_cache_clients | default('slurm-node') }}"
   when: slurm_enable_nginx_docker_cache | default(false)
 
 - name: Install NVIDIA driver
-  import_playbook: nvidia-software/nvidia-driver.yml
+  ansible.builtin.import_playbook: nvidia-software/nvidia-driver.yml
   when: slurm_cluster_install_nvidia_driver | default(true)
 
 # Install NVIDIA CUDA Toolkit
 #   Note: the CUDA playbook also installs the driver, so we pass the
 #   appropriate flag to this playbook as well.
 - name: Install NVIDIA CUDA Toolkit
-  import_playbook: nvidia-software/nvidia-cuda.yml
+  ansible.builtin.import_playbook: nvidia-software/nvidia-cuda.yml
   vars:
     cuda_playbook_install_driver: "{{ slurm_cluster_install_nvidia_driver }}"
   when: slurm_cluster_install_cuda | default(true)
 
 - name: Install software
-  import_playbook: generic/software.yml
+  ansible.builtin.import_playbook: generic/software.yml
 
 - name: Set up NFS filesystem | Install nfs-server
-  import_playbook: generic/nfs-server.yml
+  ansible.builtin.import_playbook: generic/nfs-server.yml
   vars:
     hostlist: "{{ nfs_server_group | default('slurm-nfs[0]') }}"
   when: slurm_enable_nfs_server
 
 - name: Set up NFS filesystem | Install nfs-client
-  import_playbook: generic/nfs-client.yml
+  ansible.builtin.import_playbook: generic/nfs-client.yml
   vars:
     hostlist: "{{ nfs_client_group | default('slurm-nfs-client') }}"
   when: slurm_enable_nfs_client_nodes
 
 - name: Install DCGM
-  import_playbook: nvidia-software/nvidia-dcgm.yml hostlist=slurm-node
+  ansible.builtin.import_playbook: nvidia-software/nvidia-dcgm.yml hostlist=slurm-node
   when: install_dcgm | default(false)
 
 - name: Install Node Health Check
-  import_playbook: slurm-cluster/nhc.yml hostlist=slurm-node
+  ansible.builtin.import_playbook: slurm-cluster/nhc.yml hostlist=slurm-node
   when: slurm_install_nhc | default(false)
 
 - name: Install Slurm
-  import_playbook: slurm-cluster/slurm.yml
+  ansible.builtin.import_playbook: slurm-cluster/slurm.yml
 
 - name: Install OpenMPI
-  import_playbook: slurm-cluster/openmpi.yml
+  ansible.builtin.import_playbook: slurm-cluster/openmpi.yml
   when: slurm_cluster_install_openmpi | default(true)
 
 - name: Install Lmod
-  import_playbook: slurm-cluster/lmod.yml
-  when: slurm_install_lmod
+  ansible.builtin.import_playbook: slurm-cluster/lmod.yml
+  when: slurm_install_lmod | default(true)
 
 - name: Install the NVIDIA HPC SDK
-  import_playbook: nvidia-software/nvidia-hpc-sdk.yml
+  ansible.builtin.import_playbook: nvidia-software/nvidia-hpc-sdk.yml
   vars:
     hostlist: "{{ sm_install_host | default('slurm-login[0]')}}"
   when: slurm_install_hpcsdk
 
 - name: Install prometheus
-  import_playbook: slurm-cluster/prometheus.yml
+  ansible.builtin.import_playbook: slurm-cluster/prometheus.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
 - name: Install grafana on monitoring nodes
-  import_playbook: slurm-cluster/grafana.yml
+  ansible.builtin.import_playbook: slurm-cluster/grafana.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
 - name: Install alert manager
-  import_playbook: slurm-cluster/alertmanager.yml
+  ansible.builtin.import_playbook: slurm-cluster/alertmanager.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
 # Install monitoring exporters
 - name: Install prometheus slurm exporter
-  import_playbook: slurm-cluster/prometheus-slurm-exporter.yml
+  ansible.builtin.import_playbook: slurm-cluster/prometheus-slurm-exporter.yml
   vars:
     hostlist: "{{ slurm_monitoring_group | default('slurm-metric') }}"
   when: slurm_enable_monitoring
 
 - name: Install prometheus node exporter
-  import_playbook: slurm-cluster/prometheus-node-exporter.yml
-  when: slurm_enable_monitoring
+  ansible.builtin.import_playbook: slurm-cluster/prometheus-node-exporter.yml
+  when: slurm_enable_monitoring | default(true)
 
 - name: Install nvidia dcgm exporter
-  import_playbook: slurm-cluster/nvidia-dcgm-exporter.yml
-  when: slurm_enable_monitoring
+  ansible.builtin.import_playbook: slurm-cluster/nvidia-dcgm-exporter.yml
+  when: slurm_enable_monitoring | default(true)
 
 - name: Set up rsyslog forwarding from compute nodes to head node | Install rsyslog server
-  import_playbook: generic/rsyslog-server.yml
+  ansible.builtin.import_playbook: generic/rsyslog-server.yml
   vars:
-    hostlist: "{{ rsyslog_server_hostname | default('slurm-controller[0]') }}"
+    hostlist: "{{ rsyslog_server_hostname | default(groups['slurm-controller'][0]) }}"
   when: slurm_enable_rsyslog_server | default(true)
 
 - name: Set up rsyslog forwarding from compute nodes to head node | Install rsyslog client
-  import_playbook: generic/rsyslog-client.yml
+  ansible.builtin.import_playbook: generic/rsyslog-client.yml
   vars:
     hostlist: "{{ rsyslog_client_group | default('slurm-node') }}"
   when: slurm_enable_rsyslog_client | default(true)
 
 - name: Install Singularity
-  import_playbook: container/singularity.yml
+  ansible.builtin.import_playbook: container/singularity.yml
   when: slurm_cluster_install_singularity | default(true)
 
 - name: Install Open OnDemand
-  import_playbook: slurm-cluster/open-ondemand.yml
+  ansible.builtin.import_playbook: slurm-cluster/open-ondemand.yml
   when: install_open_ondemand
 
 - name: Set Permissions to adjust GPU Clocks speeds
-  import_playbook: utilities/gpu-clocks.yml
+  ansible.builtin.import_playbook: utilities/gpu-clocks.yml
   when: allow_user_set_gpu_clocks
 
 - name: Install Enroot and Pyxis
-  import_playbook: container/pyxis.yml
+  ansible.builtin.import_playbook: container/pyxis.yml
   when:
     - slurm_install_enroot
     - slurm_install_pyxis
@@ -165,6 +163,6 @@
     - pyxis
 
 - name: Ensure that nv_peer_mem is loaded
-  import_playbook: nvidia-software/nvidia-peer-memory.yml
+  ansible.builtin.import_playbook: nvidia-software/nvidia-peer-memory.yml
   tags:
     - nvidia-peer-memory

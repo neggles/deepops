@@ -3,6 +3,6 @@
   hosts: "{{ hostlist | default('all') }}"
   become: true
   roles:
-    - {role: nfs, nfs_is_server: true}
+    - { role: nfs, nfs_is_server: true }
   tags:
     - nfs_server

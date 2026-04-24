@@ -1,3 +1,4 @@
+---
 nvidia_dcgm_container_version: "3.3.7-3.5.0-ubuntu22.04"
 nvidia_dcgm_container: "nvcr.io/nvidia/k8s/dcgm-exporter:{{ nvidia_dcgm_container_version }}"
 nvidia_dcgm_container_config_dir: "/opt/deepops/nvidia-dcgm-exporter"

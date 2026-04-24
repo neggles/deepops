@@ -1,3 +1,4 @@
+---
 slurm_exporter_enabled: true
 
 slurm_exporter_container: "deepops-slurm-exporter:latest"

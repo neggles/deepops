@@ -35,7 +35,7 @@
       ansible.builtin.copy:
         content: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }} ALL=(ALL:ALL) NOPASSWD:ALL"
         dest: "/etc/sudoers.d/{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
-        mode: '0440'
+        mode: "0440"
       become: true
       become_method: "{{ method }}"
 

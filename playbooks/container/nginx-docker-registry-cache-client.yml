@@ -7,6 +7,6 @@
   become: true
   tasks:
     - name: Configure nginx container caching proxy client
-      include_role:
+      ansible.builtin.include_role:
         name: "nginx-docker-registry-cache"
         tasks_from: client

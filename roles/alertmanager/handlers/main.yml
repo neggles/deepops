@@ -1,5 +1,5 @@
 ---
 - name: Restart alertmanager
-  service:
+  ansible.builtin.service:
     name: "{{ alertmanager_svc_name }}"
     state: restarted

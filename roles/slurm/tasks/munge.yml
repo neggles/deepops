@@ -12,6 +12,8 @@
     dest: /etc/munge/munge.key
     mode: "0400"
     owner: munge
+    backup: true
+
   notify:
     - Restart munge
 
