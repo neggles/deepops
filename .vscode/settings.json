@@ -120,8 +120,9 @@
   },
   "yaml.format.proseWrap": "preserve",
   "yaml.format.singleQuote": false,
-  "yaml.format.printWidth": 110,
+  "yaml.format.printWidth": 240,
   "yaml.format.bracketSpacing": false,
+  "yaml."
 
   "[markdown]": {
     "files.trimTrailingWhitespace": false
