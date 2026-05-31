@@ -150,6 +150,12 @@
   ansible.builtin.import_playbook: slurm-cluster/open-ondemand.yml
   when: install_open_ondemand
 
+- name: Install slurm-web
+  ansible.builtin.import_playbook: slurm-cluster/slurm-web.yml
+  when:
+    - slurm_include_slurmrestd | default(false)
+    - slurm_include_slurm_web | default(false)
+
 - name: Set Permissions to adjust GPU Clocks speeds
   ansible.builtin.import_playbook: utilities/gpu-clocks.yml
   when: allow_user_set_gpu_clocks

@@ -1,0 +1,5 @@
+---
+- name: Restart node-exporter
+  ansible.builtin.service:
+    name: "{{ slurm_web_svc_name }}"
+    state: restarted

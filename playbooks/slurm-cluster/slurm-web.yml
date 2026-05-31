@@ -1,0 +1,11 @@
+---
+- name: Install docker
+  ansible.builtin.import_playbook: ../container/docker.yml
+
+- name: Install slurm-web on controller nodes
+  hosts: "{{ hostlist | default('slurm-controller') }}"
+  become: true
+  tasks:
+    - name: Install slurm-web
+      ansible.builtin.import_role:
+        name: slurm_web

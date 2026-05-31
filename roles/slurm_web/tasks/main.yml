@@ -1,0 +1,36 @@
+---
+- name: Create slurm-web data dir
+  ansible.builtin.file:
+    path: "{{ slurm_web_compose_dir }}/data"
+    state: directory
+    mode: "0755"
+
+- name: create endpoints config dir
+  ansible.builtin.file:
+    path: "{{ prometheus_cfg_endpoint_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: install config file
+  ansible.builtin.template:
+    src: "{{ slurm_web_conf_template }}"
+    dest: "{{ prometheus_cfg_endpoint_dir }}/node-exporter.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: install systemd unit file
+  ansible.builtin.template:
+    src: templates/docker.node-exporter.service.j2
+    dest: "/etc/systemd/system/{{ slurm_web_svc_name }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: configure service
+  ansible.builtin.systemd:
+    name: "{{ slurm_web_svc_name }}"
+    state: "{{ slurm_web_state }}"
+    enabled: "{{ slurm_web_enabled }}"
+    daemon_reload: true
+  notify: Restart node-exporter

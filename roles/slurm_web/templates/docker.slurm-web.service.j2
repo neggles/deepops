@@ -1,0 +1,16 @@
+[Unit]
+Description=Prometheus Node Exporter
+After=docker.service
+Requires=docker.service
+
+[Service]
+TimeoutStartSec=0
+Restart=always
+ExecStartPre=-/usr/bin/docker stop %n
+ExecStartPre=-/usr/bin/docker rm %n
+ExecStartPre=/usr/bin/docker compose pull
+ExecStart=/usr/bin/docker compose -p slurm-web -f {{ slurm_web_compose_file }} up --remove-orphans
+WorkingDirectory={{ slurm_web_compose_dir }}
+
+[Install]
+WantedBy=multi-user.target

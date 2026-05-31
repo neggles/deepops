@@ -1,0 +1,12 @@
+---
+slurm_web_container: "quay.io/prometheus/node-exporter:v1.8.2"
+slurm_web_prom_dir: "/run/prometheus"
+slurm_web_svc_name: "docker.node-exporter.service"
+slurm_web_state: started
+slurm_web_enabled: true
+
+prometheus_config_dir: /etc/prometheus
+prometheus_cfg_endpoint_dir: "{{ prometheus_config_dir }}/endpoints"
+slurm_web_conf_template: "node-exporter.yml.j2"
+
+slurm_web_max_cpu: "0.5"
