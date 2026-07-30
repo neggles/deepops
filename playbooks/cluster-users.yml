@@ -13,7 +13,7 @@
       create_group: true
       ssh_key_type: "ed25519"
       slurm_account: "compute-account"
-
+      extra_groups: []
     # default vars (override in vars/users.yml)
 
     users_create_groups: "{{ users_create_groups | default([]) }}"
@@ -57,7 +57,7 @@
       when: users_create_per_user_group | bool
       tags: ["users", "groups", "configuration"]
 
-    - name: Create user accounts on nodes
+    - name: Create/update user accounts on nodes
       ansible.builtin.user:
         name: "{{ item.name }}"
         uid: "{{ item.uid | default(omit) }}"
@@ -73,6 +73,30 @@
       loop_control:
         label: "{{ item.name }}"
       when: item.enabled
+      tags: ["users", "configuration"]
+
+    - name: Add users to extra specified groups
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        groups: "{{ item.extra_groups | join(',') }}"
+        append: true
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }} groups={{ item.extra_groups | default([]) | join(',') }}"
+      when:
+        - item.enabled
+        - item.extra_groups is defined
+        - item.extra_groups | length > 0
+      tags: ["users", "groups", "configuration"]
+
+    - name: Set user account enable state
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        expires: "{{ item.enabled | ternary(-1, 0) }}"
+        password_lock: "{{ item.enabled | ternary(false, true) }}"
+      loop: "{{ users }}"
+      loop_control:
+        label: "{{ item.name }}"
       tags: ["users", "configuration"]
 
     - name: Retrieve user's generated SSH key from the first login node # noqa: run-once[task]
@@ -98,6 +122,7 @@
       loop_control:
         label: "{{ item.item.name }}"
       when:
+        - item.item.enabled | bool
         - item.content is defined
         - item.item.local_home | ternary(true, is_first_login)
       tags: ["users", "configuration"]
@@ -143,17 +168,18 @@
       tags: ["users", "slurm"]
 
     - name: Create SLURM user accounts # noqa: run-once[task]
-      ansible.builtin.command:
+      ansible.builtin.shell:
         cmd: >
           sacctmgr -i add user {{ item.name }}
           account={{ item.slurm_account_name | default(users_default_slurm_account) }}
-          adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}"
+          adminlevel={{ 'Administrator' if item.is_admin | bool else 'None' }}
+        executable: /bin/bash
       loop: "{{ users }}"
       loop_control:
         label: >
           {{ item.name }},
           account={{ item.slurm_account_name | default(users_default_slurm_account) }},
-          kind={{ 'Administrator' if item.is_admin | bool else 'User' }}"
+          kind={{ 'Administrator' if item.is_admin | bool else 'User' }}
       when:
         - item.enabled | bool
         - item.name not in slurm_user_check.stdout_lines
